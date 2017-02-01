@@ -9,21 +9,15 @@ environment:
 
 dependencies:
   dart_jwt: '>=0.6.0 <0.7.0'
-  browser: '>=0.10.0 <0.11.0'
-  angular2: '>=2.0.0 <4.0.0'
   unscripted: '>=0.6.2 <0.7.0'
 
 dev_dependencies:
   test: '>=0.12.0 <0.13.0'
   source_gen: '>=0.5.3 <0.6.0'
   build_runner: '>=0.1.1 <0.2.0'
+  browser: '>=0.10.0 <0.11.0'
+  angular2: '>=2.0.0 <4.0.0'
 
 transformers:
-- angular2:
-    platform_directives:
-    - 'package:angular2/common.dart#COMMON_DIRECTIVES'
-    platform_pipes:
-    - 'package:angular2/common.dart#COMMON_PIPES'
-    entry_points: example/main.dart
 executables:
   openid_client: openid_client
