@@ -1,0 +1,55 @@
+<h1>OpenID</h1>
+
+<div *ngIf="userinfo == null">
+    <input list="issuers" name="issuers" #issuersInput (change)="select(issuersInput.value)"
+        [value]="selectedIssuer?.metadata?.issuer">
+    <datalist id="issuers">
+        <option *ngFor="let uri of issuers">
+            {{ uri }}
+        </option>
+    </datalist>
+
+
+    <div *ngIf="selectedIssuer != null">
+        <h2>{{ selectedIssuer.metadata.issuer }}</h2>
+
+        <h3>supported scopes</h3>
+        <ul>
+            <li *ngFor="let s of selectedIssuer.metadata.scopesSupported">
+                {{ s }}
+            </li>
+        </ul>
+
+        <h3>supported response types</h3>
+        <ul>
+            <li *ngFor="let s of selectedIssuer.metadata.responseTypesSupported">
+                {{ s }}
+            </li>
+        </ul>
+
+        <h3>client</h3>
+        <label for="clients">client id</label>
+        <input list="clients" name="clients" #clientsInput (change)="selectClient(clientsInput.value)"
+            [value]="selectedClient?.clientId">
+        <datalist id="clients">
+            <option *ngFor="let c of clients">
+                {{ c }}
+            </option>
+        </datalist>
+
+    </div>
+
+    <div *ngIf="selectedClient != null">
+
+        <button (click)="login()">login</button>
+    </div>
+
+</div>
+
+<div *ngIf="userinfo != null">
+
+    <h2 id="name">{{ userinfo.name }}</h2>
+    <img id="picture" [src]="userinfo.picture">
+
+    <button (click)="logout()">logout</button>
+</div>

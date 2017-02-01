@@ -1,0 +1,116 @@
+# openid_client
+
+Library for working with OpenID Connect and implementing clients.
+
+It currently supports these features:
+
+* discover OpenID Provider metadata
+* parsing and validating id tokens
+* basic tools for implementing implicit and authorization code flow
+* authentication for command line tools
+
+
+Besides authentication providers that support OpenID Connect, this 
+library can also work with other authentication providers supporting
+oauth2, like Facebook. For these providers, some features (e.g. discovery and id tokens) 
+will not work. You should define the metadata for those providers manually, except
+for Facebook, which is predefined in the library.
+
+
+
+## Usage
+
+A simple usage example:
+
+    import 'package:openid_client/openid_client.dart';
+
+    main() async {
+    
+      // print a list of known issuers
+      print(Issuer.knownIssuers);
+    
+      // discover the metadata of the google OP
+      var issuer = await Issuer.discover(Issuer.google);
+      
+      // create a client
+      var client = new Client(issuer, "client_id", "client_secret");
+      
+      // create a credential object from authorization code
+      var c = client.createCredential(code: "some received authorization code");
+
+      // or from an access token
+      c = client.createCredential(accessToken: "some received access token");
+
+      // or from an id token
+      c = client.createCredential(idToken: "some id token");      
+
+      // get userinfo
+      var info = await c.getUserInfo();
+      print(info.name);
+      
+      // get claims from id token if present
+      print(c.idToken?.claimSet?.name);
+      
+      // create an implicit authentication flow
+      var f = new Flow.implicit(client);
+      
+      // or an explicit flow
+      f = new Flow.authorizationCode(client);
+      
+      // set the redirect uri
+      f.redirectUri = Uri.parse("http://localhost");
+      
+      // do something with the authentication url
+      print(f.authenticationUrl);
+      
+      // handle the result and get a credential object
+      c = await f.callback({
+        "code": "some code",
+      });
+      
+      // validate an id token
+      var violations = await c.validateToken();
+    }
+    
+## Command line tool
+
+### Install
+
+    pub global activate openid_client
+    
+
+### Usage
+
+Show a list of known OpenID providers:
+ 
+    openid_client issuers-list
+    
+Discover and show the metadata of an OP:
+
+    openid_client issusers-discover https://www.example.com
+
+Show a list of known clients:
+
+    openid_client clients-list
+    
+Add a client:
+
+    openid_client clients-add --secret optional_secret https://some.issuer.com client_id
+     
+Remove a client:
+    
+    openid_client clients-remove https://some.issuer.com client_id
+
+Authenticate with a client:
+
+    openid_client clients-auth --secret optional_secret https://some.issuer.com client_id
+    
+Show the content of an id token and validate it: 
+
+    openid_client tokens-validate eyJhbGciOiJSUzI1NiIsImtpZCI6ImE2YzJjNmQ0ZTZkYTFmOWJjMTdmYzhkMzExMzNiOTJmMDdlOTgxMTkifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJpYXQiOjE0ODU4ODQyNzcsImV4cCI6MTQ4NTg4Nzg3NywiYXRfaGFzaCI6Ik9nWUlZRzM1WXB6RmVvRlZBeWd1VUEiLCJhdWQiOiI1ODExNTUxMDQ5NDMtcnBqazBzanZucDFrZ2FkYzV0Mm5pOXFvYWt0ZGpzMjEuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMTI2NzgyNTk2NzYyMTE3MDcxNDgiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYXpwIjoiNTgxMTU1MTA0OTQzLXJwamswc2p2bnAxa2dhZGM1dDJuaTlxb2FrdGRqczIxLmFwcHMuZ29vZ2xldXNlcmNvbnRlbnQuY29tIiwiZW1haWwiOiJyaWsuYmVsbGVuc0BnbWFpbC5jb20iLCJuYW1lIjoiUmlrIEJlbGxlbnMiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDUuZ29vZ2xldXNlcmNvbnRlbnQuY29tLy1lRmpwUXFfUTZWUS9BQUFBQUFBQUFBSS9BQUFBQUFBQUFCUS9md1U0alVicTJ5US9zOTYtYy9waG90by5qcGciLCJnaXZlbl9uYW1lIjoiUmlrIiwiZmFtaWx5X25hbWUiOiJCZWxsZW5zIiwibG9jYWxlIjoibmwifQ.TlXzuNLdd5hX-bzMrwBaclcE8z4So2wFJAZ_H7hGz8YA4lCxHV8iON8yuJ1PdXGuOOkDXScj4qSPK80IZ_J29Uf2azCH83djpjyP4McB_dG4zXkUSFGFTHiNnqmvFbMmL-91A74teAr1ZHDx5-so2bHs16_c8immj2YM5GqlN4FG_IFCqRZ-7jEn9m_SjBXpb_NahiDB-bk47npmM9GIWq4OhV4e4tpFO1XY7H4fDHoiBhkc1nrbUjiqTH3VOJVQNp6FjiO2ErR7UWWnSKX6PMFDJ-U-QSsC8gu0PtuIa1ZUXvTAdX5vKt_fsKijbiT0xUUq8xJATaDh8-aBsNKpqQ
+
+## Features and bugs
+
+Please file feature requests and bugs at the [issue tracker][tracker].
+
+[tracker]: https://github.com/appsup-dart/openid_client/issues
