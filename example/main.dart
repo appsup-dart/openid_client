@@ -12,29 +12,6 @@ main() async {
 
   bootstrap(AppComponent);
 
-/*
-  var issuer = await Issuer.discover(Uri.parse('https://accounts.google.com'));
-  var client = new Client(issuer,
-      "581155104943-rpjk0sjvnp1kgadc5t2ni9qoaktdjs21.apps.googleusercontent.com");
-
-  var a = await new Authenticator(client);
-
-  var c = await a.credential;
-
-
-  if (c==null) {
-    document.querySelector("#login")
-      ..disabled = false
-          ..onClick.listen((e)=>a.authorize());
-
-  } else {
-    var info = await c.getUserInfo();
-    document.querySelector("#name").text = info.name;
-    document.querySelector("#picture").src = info.picture.toString();
-  }
-
-*/
-
 }
 
 @Component(selector: 'my-app', templateUrl: 'app_component.html')
