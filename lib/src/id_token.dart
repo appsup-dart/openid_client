@@ -60,7 +60,7 @@ class IdToken extends JsonWebSignature<MapJwtClaimSet> {
         final diff = now.difference(openIdClaimsSet.expiry);
         if (diff > claimSetValidationContext.expiryTolerance) {
           set.add(new ConstraintViolation(
-              'JWT expired. Expiry ($openIdClaimsSet.expiry) is more than tolerance '
+              'JWT expired. Expiry (${openIdClaimsSet.expiry}) is more than tolerance '
                   '(${claimSetValidationContext.expiryTolerance}) before now ($now)'));
         }
       }
