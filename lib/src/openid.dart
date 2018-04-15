@@ -1,4 +1,4 @@
-library openid;
+library openid_client.openid;
 
 import 'dart:async';
 import 'http_util.dart' as http;
@@ -9,8 +9,7 @@ import 'model.dart';
 export 'model.dart';
 import 'id_token.dart';
 export 'id_token.dart';
-
-final Map<Uri,JsonWebKeySet> _keySetCache = {};
+import 'cache.dart';
 
 class KeyNotFoundException implements Exception {
 
@@ -101,10 +100,10 @@ class Issuer {
 
   /// Finds the [JsonWebKey] that matches the `kid` argument.
   Future<JsonWebKey> findJsonWebKey(String kid) async {
-    var set = _keySetCache[metadata.jwksUri];
+    var set = findKeySetFromCache(metadata.jwksUri);
     if (set==null||set.findKey(kid)==null) {
-      set = _keySetCache[metadata.jwksUri] =
-        new JsonWebKeySet.fromJson(await http.get(metadata.jwksUri));
+      set = addKeySetToCache(metadata.jwksUri,
+        new JsonWebKeySet.fromJson(await http.get(metadata.jwksUri)));
     }
     var key = set.findKey(kid);
     print("findJonWebKey $kid ${set.keys.map((k)=>k.keyId)}");
