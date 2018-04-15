@@ -12,6 +12,17 @@ export 'id_token.dart';
 
 final Map<Uri,JsonWebKeySet> _keySetCache = {};
 
+class KeyNotFoundException implements Exception {
+
+  final Issuer issuer;
+  final String kid;
+
+  KeyNotFoundException(this.issuer, this.kid);
+
+  @override
+  String toString() => "KeyNotFoundException: kid '$kid' not found for issuer '${issuer.metadata.issuer}'";
+}
+
 /// Represents an OpenId Provider
 class Issuer {
 
@@ -95,7 +106,11 @@ class Issuer {
       set = _keySetCache[metadata.jwksUri] =
         new JsonWebKeySet.fromJson(await http.get(metadata.jwksUri));
     }
-    return set.findKey(kid);
+    var key = set.findKey(kid);
+    print("findJonWebKey $kid ${set.keys.map((k)=>k.keyId)}");
+    if (key==null)
+      throw new KeyNotFoundException(this, kid);
+    return key;
   }
 }
 
