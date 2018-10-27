@@ -1,10 +1,7 @@
-
 part of openid.model;
-
 
 @JsonSerializable()
 class TokenResponse extends _$TokenResponseSerializerMixin {
-
   final String accessToken;
 
   final String tokenType;
@@ -15,11 +12,13 @@ class TokenResponse extends _$TokenResponseSerializerMixin {
 
   final IdToken idToken;
 
+  TokenResponse(
+      {this.accessToken,
+      this.tokenType,
+      this.refreshToken,
+      this.expiresIn,
+      this.idToken});
 
-  TokenResponse({this.accessToken, this.tokenType, this.refreshToken,
-  this.expiresIn, this.idToken});
-
-
-  factory TokenResponse.fromJson(Map<String,dynamic> json) =>
+  factory TokenResponse.fromJson(Map<String, dynamic> json) =>
       _$TokenResponseFromJson(json);
 }

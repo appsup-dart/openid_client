@@ -2,7 +2,7 @@
 
 <div *ngIf="userinfo == null">
     <input list="issuers" name="issuers" #issuersInput (change)="select(issuersInput.value)"
-        [value]="selectedIssuer?.metadata?.issuer">
+           [value]="selectedIssuer?.metadata?.issuer">
     <datalist id="issuers">
         <option *ngFor="let uri of issuers">
             {{ uri }}
@@ -30,7 +30,7 @@
         <h3>client</h3>
         <label for="clients">client id</label>
         <input list="clients" name="clients" #clientsInput (change)="selectClient(clientsInput.value)"
-            [value]="selectedClient?.clientId">
+               [value]="selectedClient?.clientId">
         <datalist id="clients">
             <option *ngFor="let c of clients">
                 {{ c }}

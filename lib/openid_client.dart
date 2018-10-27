@@ -4,4 +4,3 @@
 library openid_client;
 
 export 'src/openid.dart';
-

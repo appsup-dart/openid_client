@@ -9,8 +9,7 @@ final PhaseGroup phases = new PhaseGroup.singleAction(
       const json.JsonSerializableGenerator(),
       const literal.JsonLiteralGenerator()
     ]),
-    new InputSet('openid_client',
-        const ['lib/src/model.dart']));
+    new InputSet('openid_client', const ['lib/src/model.dart']));
 
 main() {
   build(phases, deleteFilesByDefault: true);

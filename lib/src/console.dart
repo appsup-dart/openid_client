@@ -1,15 +1,13 @@
-
 import 'openid.dart';
 import 'dart:async';
 import 'dart:io';
 
 class ConsoleAuthenticator {
-
   final Flow flow;
 
-  ConsoleAuthenticator(Client client, {int port: 3000}) :
-      flow = new Flow.authorizationCode(client)
-        ..redirectUri = Uri.parse("http://localhost:$port/cb");
+  ConsoleAuthenticator(Client client, {int port: 3000})
+      : flow = new Flow.authorizationCode(client)
+          ..redirectUri = Uri.parse("http://localhost:$port/cb");
 
   Future<Credential> authorize() async {
     HttpServer requestServer = await HttpServer.bind(
@@ -26,7 +24,6 @@ class ConsoleAuthenticator {
 
     return flow.callback(result);
   }
-
 }
 
 void _runBrowser(String url) {
@@ -41,9 +38,8 @@ void _runBrowser(String url) {
       Process.run("explorer", [url]);
       break;
     default:
-      throw new UnsupportedError("Unsupported platform: ${Platform.operatingSystem}");
+      throw new UnsupportedError(
+          "Unsupported platform: ${Platform.operatingSystem}");
       break;
   }
-
 }
-

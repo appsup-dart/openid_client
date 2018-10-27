@@ -2,7 +2,6 @@ part of openid.model;
 
 @JsonSerializable()
 class UserInfo extends _$UserInfoSerializerMixin {
-
   /// Identifier for the End-User at the Issuer.
   @JsonKey("sub")
   final String subject;
@@ -11,7 +10,6 @@ class UserInfo extends _$UserInfoSerializerMixin {
   /// possibly including titles and suffixes, ordered according to the
   /// End-User's locale and preferences.
   final String name;
-
 
   /// Given name(s) or first name(s) of the End-User.
   ///
@@ -25,7 +23,6 @@ class UserInfo extends _$UserInfoSerializerMixin {
   /// family name; all can be present, with the names being separated by space
   /// characters.
   final String familyName;
-
 
   /// Middle name(s) of the End-User.
   ///
@@ -90,20 +87,34 @@ class UserInfo extends _$UserInfoSerializerMixin {
   /// Time the End-User's information was last updated.
   final DateTime updatedAt;
 
-  UserInfo({this.subject, this.name, this.givenName, this.familyName,
-  this.middleName, this.nickname, this.preferredUsername, this.profile,
-  this.picture, this.website, this.email, this.emailVerified, this.gender,
-  this.birthdate, this.zoneinfo, this.locale, this.phoneNumber,
-  this.phoneNumberVerified, this.address, this.updatedAt});
+  UserInfo(
+      {this.subject,
+      this.name,
+      this.givenName,
+      this.familyName,
+      this.middleName,
+      this.nickname,
+      this.preferredUsername,
+      this.profile,
+      this.picture,
+      this.website,
+      this.email,
+      this.emailVerified,
+      this.gender,
+      this.birthdate,
+      this.zoneinfo,
+      this.locale,
+      this.phoneNumber,
+      this.phoneNumberVerified,
+      this.address,
+      this.updatedAt});
 
-  factory UserInfo.fromJson(Map<String,dynamic> json) =>
-    _$UserInfoFromJson(json);
-
+  factory UserInfo.fromJson(Map<String, dynamic> json) =>
+      _$UserInfoFromJson(json);
 }
 
 @JsonSerializable()
 class Address extends _$AddressSerializerMixin {
-
   /// Full mailing address, formatted for display or use on a mailing label.
   final String formatted;
 
@@ -122,17 +133,22 @@ class Address extends _$AddressSerializerMixin {
   /// Country name component.
   final String country;
 
-  Address({this.formatted, this.streetAddress, this.locality, this.region,
-  this.postalCode, this.country});
+  Address(
+      {this.formatted,
+      this.streetAddress,
+      this.locality,
+      this.region,
+      this.postalCode,
+      this.country});
 
-  factory Address.fromJson(Map<String,dynamic> json) =>
+  factory Address.fromJson(Map<String, dynamic> json) =>
       _$AddressFromJson(json);
 }
 
 @JsonSerializable()
 class OpenIdJwtClaimSet extends JwtClaimSet
-    with _$OpenIdJwtClaimSetSerializerMixin implements UserInfo {
-
+    with _$OpenIdJwtClaimSetSerializerMixin
+    implements UserInfo {
   /// Issuer Identifier
   @JsonKey("iss")
   final Uri issuer;
@@ -170,7 +186,6 @@ class OpenIdJwtClaimSet extends JwtClaimSet
   /// The party to which the ID Token was issued.
   @JsonKey("azp")
   final String authorizedParty;
-
 
   @override
   @JsonKey("sub")
@@ -233,17 +248,38 @@ class OpenIdJwtClaimSet extends JwtClaimSet
   @override
   final DateTime updatedAt;
 
+  OpenIdJwtClaimSet(
+      {this.subject,
+      this.name,
+      this.givenName,
+      this.familyName,
+      this.middleName,
+      this.nickname,
+      this.preferredUsername,
+      this.profile,
+      this.picture,
+      this.website,
+      this.email,
+      this.emailVerified,
+      this.gender,
+      this.birthdate,
+      this.zoneinfo,
+      this.locale,
+      this.phoneNumber,
+      this.phoneNumberVerified,
+      this.address,
+      this.updatedAt,
+      this.issuer,
+      this.audience,
+      this.expiry,
+      this.issuedAt,
+      this.authTime,
+      this.nonce,
+      this.authenticationContextClassReference,
+      this.authenticationMethodsReferences,
+      this.authorizedParty});
 
-  OpenIdJwtClaimSet({this.subject, this.name, this.givenName, this.familyName,
-  this.middleName, this.nickname, this.preferredUsername, this.profile,
-  this.picture, this.website, this.email, this.emailVerified, this.gender,
-  this.birthdate, this.zoneinfo, this.locale, this.phoneNumber,
-  this.phoneNumberVerified, this.address, this.updatedAt,
-  this.issuer, this.audience, this.expiry, this.issuedAt, this.authTime,
-  this.nonce, this.authenticationContextClassReference,
-  this.authenticationMethodsReferences, this.authorizedParty});
-
-  factory OpenIdJwtClaimSet.fromJson(Map<String,dynamic> json) =>
+  factory OpenIdJwtClaimSet.fromJson(Map<String, dynamic> json) =>
       _$OpenIdJwtClaimSetFromJson(json);
 
   Set<ConstraintViolation> validate(
@@ -254,10 +290,9 @@ class OpenIdJwtClaimSet extends JwtClaimSet
       return new Set()
         ..add(new ConstraintViolation(
             'JWT expired. Expiry ($expiry) is more than tolerance '
-                '(${validationContext.expiryTolerance}) before now ($now)'));
+            '(${validationContext.expiryTolerance}) before now ($now)'));
     }
 
     return new Set.identity();
   }
-
 }

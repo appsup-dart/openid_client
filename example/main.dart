@@ -9,9 +9,7 @@ import 'package:angular2/platform/browser.dart';
 import 'package:angular2/core.dart';
 
 main() async {
-
   bootstrap(AppComponent);
-
 }
 
 @Component(selector: 'my-app', templateUrl: 'app_component.html')
@@ -20,7 +18,7 @@ class AppComponent {
 
   Issuer selectedIssuer;
 
-  Map<String,List<String>> allClients = {};
+  Map<String, List<String>> allClients = {};
 
   List<String> clients = [];
 
@@ -38,7 +36,7 @@ class AppComponent {
     () async {
       if (window.localStorage.containsKey("issuer")) {
         await select(window.localStorage["issuer"]);
-        if (selectedIssuer!=null) {
+        if (selectedIssuer != null) {
           if (window.localStorage.containsKey("client_id")) {
             selectClient(window.localStorage["client_id"]);
           }
@@ -84,4 +82,3 @@ class AppComponent {
     authenticator.logout();
   }
 }
-

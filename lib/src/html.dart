@@ -1,20 +1,18 @@
-
-
 import 'openid.dart';
 import 'dart:html' hide Credential, Client;
 import 'dart:async';
 import 'dart:convert';
 
 class Authenticator {
-
   final Flow flow;
 
   final Future<Credential> credential;
 
   Authenticator._(this.flow) : credential = _credentialFromUri(flow);
 
-  Authenticator(Client client) : this._(new Flow.implicit(client)
-  ..redirectUri = Uri.parse(window.location.href).removeFragment());
+  Authenticator(Client client)
+      : this._(new Flow.implicit(client)
+          ..redirectUri = Uri.parse(window.location.href).removeFragment());
 
   void authorize() {
     logout();
@@ -32,8 +30,11 @@ class Authenticator {
     } else {
       var uri = new Uri(query: Uri.parse(window.location.href).fragment);
       q = uri.queryParameters;
-      if (q.containsKey("access_token")||q.containsKey("code")||q.containsKey("id_token")) {
-        window.location.href = Uri.parse(window.location.href).removeFragment().toString();
+      if (q.containsKey("access_token") ||
+          q.containsKey("code") ||
+          q.containsKey("id_token")) {
+        window.location.href =
+            Uri.parse(window.location.href).removeFragment().toString();
       }
     }
     try {

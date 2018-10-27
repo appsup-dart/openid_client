@@ -2,7 +2,6 @@ part of openid.model;
 
 @JsonSerializable()
 class JsonWebKey extends _$JsonWebKeySerializerMixin {
-
   /// The cryptographic algorithm family used with the key, such as `RSA` or
   /// `EC`.
   @JsonKey('kty')
@@ -15,7 +14,6 @@ class JsonWebKey extends _$JsonWebKeySerializerMixin {
   /// * `sig` (signature)
   /// * `enc` (encryption)
   final String use;
-
 
   /// The operation(s) that the key is intended to be used for.
   ///
@@ -31,7 +29,6 @@ class JsonWebKey extends _$JsonWebKeySerializerMixin {
   /// * `deriveBits` (derive bits not to be used as a key)
   @JsonKey('key_ops')
   final List<String> keyOperations;
-
 
   /// The algorithm intended for use with the key.
   @JsonKey('alg')
@@ -67,31 +64,39 @@ class JsonWebKey extends _$JsonWebKeySerializerMixin {
 
   RSAPublicKey get publicKey {
     _decode(String s) {
-      s = s + new Iterable.generate((4-s.length%4)%4,(i)=>"=").join();
-      return new BigInteger.fromBytes(1,BASE64URL.decode(s));
+      s = s + new Iterable.generate((4 - s.length % 4) % 4, (i) => "=").join();
+      return new BigInteger.fromBytes(1, BASE64URL.decode(s));
     }
+
     return new RSAPublicKey(_decode(n), _decode(e));
   }
 
-  JsonWebKey({this.keyType, this.use, this.keyOperations, this.algorithm,
-    this.keyId, this.x509Url, this.x509CertificateChain,
-    this.x509CertificateThumbprint, this.x509CertificateSha256Thumbprint,
-    this.n, this.e
-  });
+  JsonWebKey(
+      {this.keyType,
+      this.use,
+      this.keyOperations,
+      this.algorithm,
+      this.keyId,
+      this.x509Url,
+      this.x509CertificateChain,
+      this.x509CertificateThumbprint,
+      this.x509CertificateSha256Thumbprint,
+      this.n,
+      this.e});
 
-  factory JsonWebKey.fromJson(Map<String,dynamic> json) =>
+  factory JsonWebKey.fromJson(Map<String, dynamic> json) =>
       _$JsonWebKeyFromJson(json);
 }
 
 @JsonSerializable()
 class JsonWebKeySet extends _$JsonWebKeySetSerializerMixin {
-
   final List<JsonWebKey> keys;
 
   JsonWebKeySet(this.keys);
 
-  factory JsonWebKeySet.fromJson(Map<String,dynamic> json) =>
+  factory JsonWebKeySet.fromJson(Map<String, dynamic> json) =>
       _$JsonWebKeySetFromJson(json);
 
-  JsonWebKey findKey(String kid) => keys.firstWhere((k)=>k.keyId==kid, orElse: ()=>null);
+  JsonWebKey findKey(String kid) =>
+      keys.firstWhere((k) => k.keyId == kid, orElse: () => null);
 }

@@ -20,7 +20,6 @@ class JsonSerializableGenerator
     extends GeneratorForAnnotation<JsonSerializable> {
   const JsonSerializableGenerator();
 
-
   @override
   Future<String> generateForAnnotatedElement(
       Element element, JsonSerializable annotation, _) async {
@@ -37,10 +36,10 @@ class JsonSerializableGenerator
     // Get all of the fields that need to be assigned
     // TODO: support overriding the field set with an annotation option
     var fields = classElement.fields.fold(<String, FieldElement>{},
-            (Map<String, FieldElement> map, field) {
-          map[field.name] = field;
-          return map;
-        });
+        (Map<String, FieldElement> map, field) {
+      map[field.name] = field;
+      return map;
+    });
 
     // Get the constructor to use for the factory
 
@@ -70,7 +69,8 @@ class JsonSerializableGenerator
       });
 
       // write toJson method
-      buffer.writeln('  Map<String, dynamic> toJson() => _removeNulls(<String, dynamic>{');
+      buffer.writeln(
+          '  Map<String, dynamic> toJson() => _removeNulls(<String, dynamic>{');
 
       var pairs = <String>[];
       fields.forEach((name, field) {
@@ -89,8 +89,6 @@ class JsonSerializableGenerator
 
       buffer.write('}');
     }
-
-
 
     return buffer.toString();
   }
@@ -154,7 +152,7 @@ Set<FieldElement> _writeFactory(StringBuffer buffer, ClassElement classElement,
   }
   buffer.writeAll(
       ctorNamedArguments.map((paramElement) =>
-      '${paramElement.name}: ' +
+          '${paramElement.name}: ' +
           _jsonMapAccessToField(
               paramElement.name, fields[paramElement.name], paramElement)),
       ', ');
@@ -187,7 +185,8 @@ String _fieldToAnnotatedMapValue(String defaultValue, FieldElement field) {
 }
 
 String _camelToUnderscore(String v) {
-  return v.replaceAllMapped(new RegExp("[A-Z]"), (m)=>"_"+m.group(0).toLowerCase());
+  return v.replaceAllMapped(
+      new RegExp("[A-Z]"), (m) => "_" + m.group(0).toLowerCase());
 }
 
 String _fieldToJsonMapValue(String name, DartType fieldType, [int depth = 0]) {
@@ -212,10 +211,9 @@ String _fieldToJsonMapValue(String name, DartType fieldType, [int depth = 0]) {
     return "$name?.toIso8601String()";
   }
 
-  if (_isUri(fieldType)||fieldType.name=='JsonWebAlgorithm') {
+  if (_isUri(fieldType) || fieldType.name == 'JsonWebAlgorithm') {
     return "$name?.toString()";
   }
-
 
   return name;
 }
@@ -224,7 +222,7 @@ String _jsonMapAccessToField(String name, FieldElement field,
     [ParameterElement ctorParam]) {
   name = _fieldToAnnotatedMapValue(name, field);
   var result = "json['$name']";
-  if (name=='aud') {
+  if (name == 'aud') {
     result = "($result is List ? $result : $result==null ? [] : [$result])";
   }
   return _writeAccessToVar(result, field.type, ctorParam: ctorParam);
@@ -236,11 +234,11 @@ String _writeAccessToVar(String varExpression, DartType searchType,
     searchType = ctorParam.type;
   }
 
-  if (searchType.name=='JsonWebAlgorithm') {
+  if (searchType.name == 'JsonWebAlgorithm') {
     return "$varExpression == null ? null : JsonWebAlgorithm.lookup($varExpression)";
   }
 
-  if (searchType.name=='IdToken') {
+  if (searchType.name == 'IdToken') {
     return "$varExpression == null ? null : new IdToken.decode($varExpression)";
   }
 
@@ -273,7 +271,7 @@ String _writeAccessToVar(String varExpression, DartType searchType,
     var itemVal = "v$depth";
 
     var output = "($varExpression as List)?.map(($itemVal) => "
-        "${_writeAccessToVar(itemVal, iterableGenericType, depth: depth+1)}"
+        "${_writeAccessToVar(itemVal, iterableGenericType, depth: depth + 1)}"
         ")";
 
     if (_isDartList(searchType)) {
@@ -330,30 +328,31 @@ ParameterizedType _typeTest(
   return null;
 }
 
-/*=T*/ _firstNonNull/*<T>*/(Iterable/*<T>*/ values) =>
+/*=T*/
+_firstNonNull/*<T>*/(Iterable/*<T>*/ values) =>
     values.firstWhere((value) => value != null, orElse: () => null);
 
 bool _isDartIterable(DartType type) =>
     type.element.library != null &&
-        type.element.library.isDartCore &&
-        type.name == 'Iterable';
+    type.element.library.isDartCore &&
+    type.name == 'Iterable';
 
 bool _isDartList(DartType type) =>
     type.element.library != null &&
-        type.element.library.isDartCore &&
-        type.name == 'List';
+    type.element.library.isDartCore &&
+    type.name == 'List';
 
 bool _isDartDateTime(DartType type) =>
     type.element.library != null &&
-        type.element.library.isDartCore &&
-        type.name == 'DateTime';
+    type.element.library.isDartCore &&
+    type.name == 'DateTime';
 
 bool _isUri(DartType type) =>
     type.element.library != null &&
-        type.element.library.isDartCore &&
-        type.name == 'Uri';
+    type.element.library.isDartCore &&
+    type.name == 'Uri';
 
 bool _isInt(DartType type) =>
     type.element.library != null &&
-        type.element.library.isDartCore &&
-        type.name == 'int';
+    type.element.library.isDartCore &&
+    type.name == 'int';

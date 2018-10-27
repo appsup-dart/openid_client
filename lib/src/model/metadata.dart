@@ -1,10 +1,8 @@
-
 part of openid.model;
 
 /// OpenID Provider Metadata
 @JsonSerializable()
 class OpenIdProviderMetadata extends _$OpenIdProviderMetadataSerializerMixin {
-
   /// URL that the OP asserts as its OpenIdProviderMetadata Identifier.
   final Uri issuer;
 
@@ -202,54 +200,52 @@ class OpenIdProviderMetadata extends _$OpenIdProviderMetadataSerializerMixin {
   /// server.
   final List<String> codeChallengeMethodsSupported;
 
+  OpenIdProviderMetadata(
+      {this.issuer,
+      this.authorizationEndpoint,
+      this.tokenEndpoint,
+      this.userinfoEndpoint,
+      this.jwksUri,
+      this.registrationEndpoint,
+      this.scopesSupported,
+      this.responseTypesSupported,
+      this.responseModesSupported: const ["query", "fragment"],
+      this.grantTypesSupported: const ["authorization_code", "implicit"],
+      this.acrValuesSupported,
+      this.subjectTypesSupported,
+      this.idTokenSigningAlgValuesSupported,
+      this.idTokenEncryptionAlgValuesSupported,
+      this.idTokenEncryptionEncValuesSupported,
+      this.userinfoSigningAlgValuesSupported,
+      this.userinfoEncryptionAlgValuesSupported,
+      this.userinfoEncryptionEncValuesSupported,
+      this.requestObjectSigningAlgValuesSupported,
+      this.requestObjectEncryptionAlgValuesSupported,
+      this.requestObjectEncryptionEncValuesSupported,
+      this.tokenEndpointAuthMethodsSupported: const ['client_secret_basic'],
+      this.tokenEndpointAuthSigningAlgValuesSupported,
+      this.displayValuesSupported,
+      this.claimTypesSupported: const ['normal'],
+      this.claimsSupported,
+      this.serviceDocumentation,
+      this.claimsLocalesSupported,
+      this.uiLocalesSupported,
+      this.claimsParameterSupported: false,
+      this.requestParameterSupported: false,
+      this.requestUriParameterSupported: true,
+      this.requireRequestUriRegistration: false,
+      this.opPolicyUri,
+      this.opTosUri,
+      this.checkSessionIframe,
+      this.endSessionEndpoint,
+      this.revocationEndpoint,
+      this.revocationEndpointAuthMethodsSupported,
+      this.revocationEndpointAuthSigningAlgValuesSupported,
+      this.introspectionEndpoint,
+      this.introspectionEndpointAuthMethodsSupported,
+      this.introspectionEndpointAuthSigningAlgValuesSupported,
+      this.codeChallengeMethodsSupported});
 
-  OpenIdProviderMetadata({
-  this.issuer,
-  this.authorizationEndpoint,
-  this.tokenEndpoint,
-  this.userinfoEndpoint,
-  this.jwksUri,
-  this.registrationEndpoint,
-  this.scopesSupported,
-  this.responseTypesSupported,
-  this.responseModesSupported: const ["query", "fragment"],
-  this.grantTypesSupported: const ["authorization_code", "implicit"],
-  this.acrValuesSupported,
-  this.subjectTypesSupported,
-  this.idTokenSigningAlgValuesSupported,
-  this.idTokenEncryptionAlgValuesSupported,
-  this.idTokenEncryptionEncValuesSupported,
-  this.userinfoSigningAlgValuesSupported,
-  this.userinfoEncryptionAlgValuesSupported,
-  this.userinfoEncryptionEncValuesSupported,
-  this.requestObjectSigningAlgValuesSupported,
-  this.requestObjectEncryptionAlgValuesSupported,
-  this.requestObjectEncryptionEncValuesSupported,
-  this.tokenEndpointAuthMethodsSupported: const ['client_secret_basic'],
-  this.tokenEndpointAuthSigningAlgValuesSupported,
-  this.displayValuesSupported,
-  this.claimTypesSupported: const ['normal'],
-  this.claimsSupported,
-  this.serviceDocumentation,
-  this.claimsLocalesSupported,
-  this.uiLocalesSupported,
-  this.claimsParameterSupported: false,
-  this.requestParameterSupported: false,
-  this.requestUriParameterSupported: true,
-  this.requireRequestUriRegistration: false,
-  this.opPolicyUri,
-  this.opTosUri,
-  this.checkSessionIframe,
-  this.endSessionEndpoint,
-  this.revocationEndpoint,
-  this.revocationEndpointAuthMethodsSupported,
-  this.revocationEndpointAuthSigningAlgValuesSupported,
-  this.introspectionEndpoint,
-  this.introspectionEndpointAuthMethodsSupported,
-  this.introspectionEndpointAuthSigningAlgValuesSupported,
-  this.codeChallengeMethodsSupported});
-
-  factory OpenIdProviderMetadata.fromJson(Map<String, dynamic> json) => _$OpenIdProviderMetadataFromJson(json);
-
+  factory OpenIdProviderMetadata.fromJson(Map<String, dynamic> json) =>
+      _$OpenIdProviderMetadataFromJson(json);
 }
-
