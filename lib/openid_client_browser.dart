@@ -1,7 +1,8 @@
-import 'openid.dart';
+import 'openid_client.dart';
 import 'dart:html' hide Credential, Client;
 import 'dart:async';
 import 'dart:convert';
+export 'openid_client.dart';
 
 class Authenticator {
   final Flow flow;
@@ -10,8 +11,9 @@ class Authenticator {
 
   Authenticator._(this.flow) : credential = _credentialFromUri(flow);
 
-  Authenticator(Client client)
+  Authenticator(Client client, {Iterable<String> scopes: const []})
       : this._(new Flow.implicit(client)
+          ..scopes.addAll(scopes)
           ..redirectUri = Uri.parse(window.location.href).removeFragment());
 
   void authorize() {
@@ -26,7 +28,7 @@ class Authenticator {
   static Future<Credential> _credentialFromUri(Flow flow) async {
     var q;
     if (window.localStorage.containsKey("openid_client:auth")) {
-      q = JSON.decode(window.localStorage["openid_client:auth"]);
+      q = json.decode(window.localStorage["openid_client:auth"]);
     } else {
       var uri = new Uri(query: Uri.parse(window.location.href).fragment);
       q = uri.queryParameters;
@@ -39,7 +41,7 @@ class Authenticator {
     }
     try {
       var c = await flow.callback(q);
-      window.localStorage["openid_client:auth"] = JSON.encode(q);
+      window.localStorage["openid_client:auth"] = json.encode(q);
       return c;
     } on ArgumentError {
       return null;

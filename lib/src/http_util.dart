@@ -2,8 +2,11 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 import 'package:logging/logging.dart';
-import 'http_util/io.dart'
+// ignore: URI_DOES_NOT_EXIST
+import 'http_util/browser.dart'
+// ignore: URI_DOES_NOT_EXIST
     if (dart.library.io) 'http_util/io.dart'
+// ignore: URI_DOES_NOT_EXIST
     if (dart.library.html) 'http_util/browser.dart';
 
 final _logger = new Logger("openid_client");
@@ -24,10 +27,10 @@ Future post(dynamic url,
 _processResponse(http.Response response) {
   _logger.fine(
       "${response.request.method} ${response.request.url}: ${response.body}");
-  return JSON.decode(response.body);
+  return json.decode(response.body);
 }
 
-Future/*<T>*/ _withClient/*<T>*/(Future/*<T>*/ fn(http.Client client)) async {
+Future<T> _withClient<T>(Future<T> fn(http.Client client)) async {
   var client = factory();
   try {
     return await fn(client);

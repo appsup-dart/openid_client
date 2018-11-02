@@ -1,298 +1,167 @@
 part of openid.model;
 
-@JsonSerializable()
-class UserInfo extends _$UserInfoSerializerMixin {
+abstract class UserInfo implements JsonObject {
   /// Identifier for the End-User at the Issuer.
-  @JsonKey("sub")
-  final String subject;
+  String get subject => this["sub"];
 
   /// End-User's full name in displayable form including all name parts,
   /// possibly including titles and suffixes, ordered according to the
   /// End-User's locale and preferences.
-  final String name;
+  String get name => this["name"];
 
   /// Given name(s) or first name(s) of the End-User.
   ///
   /// Note that in some cultures, people can have multiple given names; all can
   /// be present, with the names being separated by space characters.
-  final String givenName;
+  String get givenName => this["given_name"];
 
   /// Surname(s) or last name(s) of the End-User.
   ///
   /// Note that in some cultures, people can have multiple family names or no
   /// family name; all can be present, with the names being separated by space
   /// characters.
-  final String familyName;
+  String get familyName => this["family_name"];
 
   /// Middle name(s) of the End-User.
   ///
   /// Note that in some cultures, people can have multiple middle names; all can
   /// be present, with the names being separated by space characters. Also note
   /// that in some cultures, middle names are not used.
-  final String middleName;
+  String get middleName => this["middle_name"];
 
   /// Casual name of the End-User that may or may not be the same as the
   /// given name.
-  final String nickname;
+  String get nickname => this["nickname"];
 
   /// Shorthand name by which the End-User wishes to be referred to at the RP,
   /// such as janedoe or j.doe. T
-  final String preferredUsername;
+  String get preferredUsername => this["preferred_username"];
 
   /// URL of the End-User's profile page.
-  final Uri profile;
+  Uri get profile =>
+      this["profile"] == null ? null : Uri.parse(this["profile"]);
 
   /// URL of the End-User's profile picture.
-  final Uri picture;
+  Uri get picture =>
+      this["picture"] == null ? null : Uri.parse(this["picture"]);
 
   /// URL of the End-User's Web page or blog.
-  final Uri website;
+  Uri get website =>
+      this["website"] == null ? null : Uri.parse(this["website"]);
 
   /// End-User's preferred e-mail address.
-  final String email;
+  String get email => this["email"];
 
   /// `true` if the End-User's e-mail address has been verified.
-  final bool emailVerified;
+  bool get emailVerified => this["email_verified"];
 
   /// End-User's gender.
   ///
   /// Values defined by the specification are `female` and `male`. Other values
   /// MAY be used when neither of the defined values are applicable.
-  final String gender;
+  String get gender => this["gender"];
 
   /// End-User's birthday.
   ///
   /// Date represented as an ISO 8601:2004 [ISO8601‑2004] YYYY-MM-DD format.
   /// The year MAY be 0000, indicating that it is omitted. To represent only the
   /// year, YYYY format is allowed.
-  final String birthdate;
+  String get birthdate => this["birthdate"];
 
   /// The End-User's time zone.
   ///
   /// For example, Europe/Paris or America/Los_Angeles.
-  final String zoneinfo;
+  String get zoneinfo => this["zoneinfo"];
 
   /// End-User's locale.
-  final String locale;
+  String get locale => this["locale"];
 
   /// End-User's preferred telephone number.
-  final String phoneNumber;
+  String get phoneNumber => this["phone_number"];
 
   /// `true if the End-User's phone number has been verified`
-  final bool phoneNumberVerified;
+  bool get phoneNumberVerified => this["phone_number_verified"];
 
   /// End-User's preferred postal address.
-  final Address address;
+  Address get address =>
+      this["address"] == null ? null : new Address.fromJson(this["address"]);
 
   /// Time the End-User's information was last updated.
-  final DateTime updatedAt;
+  DateTime get updatedAt => this["updated_at"] == null
+      ? null
+      : new DateTime.fromMillisecondsSinceEpoch(this["updated_at"] * 1000);
 
-  UserInfo(
-      {this.subject,
-      this.name,
-      this.givenName,
-      this.familyName,
-      this.middleName,
-      this.nickname,
-      this.preferredUsername,
-      this.profile,
-      this.picture,
-      this.website,
-      this.email,
-      this.emailVerified,
-      this.gender,
-      this.birthdate,
-      this.zoneinfo,
-      this.locale,
-      this.phoneNumber,
-      this.phoneNumberVerified,
-      this.address,
-      this.updatedAt});
-
-  factory UserInfo.fromJson(Map<String, dynamic> json) =>
-      _$UserInfoFromJson(json);
+  factory UserInfo.fromJson(Map<String, dynamic> json) = _UserInfoImpl.fromJson;
 }
 
-@JsonSerializable()
-class Address extends _$AddressSerializerMixin {
+class _UserInfoImpl extends JsonObject with UserInfo {
+  _UserInfoImpl.fromJson(Map<String, dynamic> json) : super.from(json);
+}
+
+class Address extends JsonObject {
   /// Full mailing address, formatted for display or use on a mailing label.
-  final String formatted;
+  String get formatted => this["formatted"];
 
   /// Full street address component.
-  final String streetAddress;
+  String get streetAddress => this["street_address"];
 
   /// City or locality component.
-  final String locality;
+  String get locality => this["locality"];
 
   /// State, province, prefecture, or region component.
-  final String region;
+  String get region => this["region"];
 
   /// Zip code or postal code component.
-  final String postalCode;
+  String get postalCode => this["postal_code"];
 
   /// Country name component.
-  final String country;
+  String get country => this["country"];
 
-  Address(
-      {this.formatted,
-      this.streetAddress,
-      this.locality,
-      this.region,
-      this.postalCode,
-      this.country});
-
-  factory Address.fromJson(Map<String, dynamic> json) =>
-      _$AddressFromJson(json);
+  Address.fromJson(Map<String, dynamic> json) : super.from(json);
 }
 
-@JsonSerializable()
-class OpenIdJwtClaimSet extends JwtClaimSet
-    with _$OpenIdJwtClaimSetSerializerMixin
-    implements UserInfo {
-  /// Issuer Identifier
-  @JsonKey("iss")
-  final Uri issuer;
-
-  /// Audience(s) that this ID Token is intended for.
-  @JsonKey("aud")
-  final List<String> audience;
-
-  /// Expiration time on or after which the ID Token MUST NOT be accepted for
-  /// processing.
-  @JsonKey("exp")
-  final DateTime expiry;
-
-  /// Time at which the JWT was issued.
-  @JsonKey("iat")
-  final DateTime issuedAt;
-
+class OpenIdClaims extends JsonWebTokenClaims with UserInfo {
   /// Time when the End-User authentication occurred.
-  final DateTime authTime;
+  DateTime get authTime => this["auth_time"] == null
+      ? null
+      : new DateTime.fromMillisecondsSinceEpoch(this["auth_time"] * 1000);
 
   /// String value used to associate a Client session with an ID Token, and to
   /// mitigate replay attacks.
-  final String nonce;
+  String get nonce => this["nonce"];
 
   /// Identifies the Authentication Context Class that the authentication
   /// performed satisfied.
-  @JsonKey("acr")
-  final String authenticationContextClassReference;
+  String get authenticationContextClassReference => this["acr"];
 
   /// List of strings that are identifiers for authentication methods used in
   /// the authentication.
-  @JsonKey("amr")
-  final List<String> authenticationMethodsReferences;
+  List<String> get authenticationMethodsReferences =>
+      (this["amr"] as List)?.cast();
 
   /// The party to which the ID Token was issued.
-  @JsonKey("azp")
-  final String authorizedParty;
+  String get authorizedParty => this["azp"];
+
+  OpenIdClaims.fromJson(Map<String, dynamic> json) : super.fromJson(json);
 
   @override
-  @JsonKey("sub")
-  final String subject;
-
-  @override
-  final String name;
-
-  @override
-  final String givenName;
-
-  @override
-  final String familyName;
-
-  @override
-  final String middleName;
-
-  @override
-  final String nickname;
-
-  @override
-  final String preferredUsername;
-
-  @override
-  final Uri profile;
-
-  @override
-  final Uri picture;
-
-  @override
-  final Uri website;
-
-  @override
-  final String email;
-
-  @override
-  final bool emailVerified;
-
-  @override
-  final String gender;
-
-  @override
-  final String birthdate;
-
-  @override
-  final String zoneinfo;
-
-  @override
-  final String locale;
-
-  @override
-  final String phoneNumber;
-
-  @override
-  final bool phoneNumberVerified;
-
-  @override
-  final Address address;
-
-  @override
-  final DateTime updatedAt;
-
-  OpenIdJwtClaimSet(
-      {this.subject,
-      this.name,
-      this.givenName,
-      this.familyName,
-      this.middleName,
-      this.nickname,
-      this.preferredUsername,
-      this.profile,
-      this.picture,
-      this.website,
-      this.email,
-      this.emailVerified,
-      this.gender,
-      this.birthdate,
-      this.zoneinfo,
-      this.locale,
-      this.phoneNumber,
-      this.phoneNumberVerified,
-      this.address,
-      this.updatedAt,
-      this.issuer,
-      this.audience,
-      this.expiry,
-      this.issuedAt,
-      this.authTime,
-      this.nonce,
-      this.authenticationContextClassReference,
-      this.authenticationMethodsReferences,
-      this.authorizedParty});
-
-  factory OpenIdJwtClaimSet.fromJson(Map<String, dynamic> json) =>
-      _$OpenIdJwtClaimSetFromJson(json);
-
-  Set<ConstraintViolation> validate(
-      JwtClaimSetValidationContext validationContext) {
-    final now = new DateTime.now();
-    final diff = now.difference(expiry);
-    if (diff > validationContext.expiryTolerance) {
-      return new Set()
-        ..add(new ConstraintViolation(
-            'JWT expired. Expiry ($expiry) is more than tolerance '
-            '(${validationContext.expiryTolerance}) before now ($now)'));
+  Iterable<Exception> validate(
+      {Duration expiryTolerance: const Duration(),
+      Uri issuer,
+      String clientId,
+      String nonce}) sync* {
+    yield* super.validate(
+        expiryTolerance: expiryTolerance, issuer: issuer, clientId: clientId);
+    if (audience.length > 1 && this.authorizedParty == null) {
+      yield new JoseException('No authorized party claim present.');
     }
 
-    return new Set.identity();
+    if (authorizedParty != null && authorizedParty != clientId) {
+      yield new JoseException('Invalid authorized party claim.');
+    }
+
+    if (nonce != null && nonce != this.nonce) {
+      yield new JoseException('Nonce does not match.');
+    }
   }
 }

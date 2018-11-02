@@ -3,24 +3,12 @@ library openid_client.openid;
 import 'dart:async';
 import 'http_util.dart' as http;
 import 'dart:convert';
-import 'package:dart_jwt/dart_jwt.dart';
-
+import 'package:jose/jose.dart';
+import 'dart:math';
 import 'model.dart';
 export 'model.dart';
-import 'id_token.dart';
-export 'id_token.dart';
-import 'cache.dart';
-
-class KeyNotFoundException implements Exception {
-  final Issuer issuer;
-  final String kid;
-
-  KeyNotFoundException(this.issuer, this.kid);
-
-  @override
-  String toString() =>
-      "KeyNotFoundException: kid '$kid' not found for issuer '${issuer.metadata.issuer}'";
-}
+import 'dart:typed_data';
+import 'package:pointycastle/digests/sha256.dart';
 
 /// Represents an OpenId Provider
 class Issuer {
@@ -29,8 +17,11 @@ class Issuer {
 
   final Map<String, String> claimsMap;
 
+  final JsonWebKeyStore _keyStore;
+
   /// Creates an issuer from its metadata.
-  Issuer(this.metadata, {this.claimsMap: const {}});
+  Issuer(this.metadata, {this.claimsMap: const {}})
+      : _keyStore = new JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri);
 
   /// Url of the facebook issuer.
   ///
@@ -55,67 +46,59 @@ class Issuer {
       Uri.parse("https://securetoken.google.com/$id");
 
   static final Map<Uri, Issuer> _discoveries = {
-    facebook: new Issuer(new OpenIdProviderMetadata(
-        issuer: facebook,
-        authorizationEndpoint:
-            Uri.parse("https://www.facebook.com/v2.8/dialog/oauth"),
-        tokenEndpoint:
-            Uri.parse("https://graph.facebook.com/v2.8/oauth/access_token"),
-        userinfoEndpoint:
-            Uri.parse("https://graph.facebook.com/v2.8/879023912133394"),
-        responseTypesSupported: [
-          "token",
-          "code",
-          "code token"
-        ],
-        tokenEndpointAuthMethodsSupported: [
-          "client_secret_post"
-        ],
-        scopesSupported: [
-          "public_profile",
-          "user_friends",
-          "email",
-          "user_about_me",
-          "user_actions.books",
-          "user_actions.fitness",
-          "user_actions.music",
-          "user_actions.news",
-          "user_actions.video",
-          "user_birthday",
-          "user_education_history",
-          "user_events",
-          "user_games_activity",
-          "user_hometown",
-          "user_likes",
-          "user_location",
-          "user_managed_groups",
-          "user_photos",
-          "user_posts",
-          "user_relationships",
-          "user_relationship_details",
-          "user_religion_politics",
-          "user_tagged_places",
-          "user_videos",
-          "user_website",
-          "user_work_history",
-          "read_custom_friendlists",
-          "read_insights",
-          "read_audience_network_insights",
-          "read_page_mailboxes",
-          "manage_pages",
-          "publish_pages",
-          "publish_actions",
-          "rsvp_event",
-          "pages_show_list",
-          "pages_manage_cta",
-          "pages_manage_instant_articles",
-          "ads_read",
-          "ads_management",
-          "business_management",
-          "pages_messaging",
-          "pages_messaging_subscriptions",
-          "pages_messaging_phone_number"
-        ])),
+    facebook: new Issuer(new OpenIdProviderMetadata.fromJson({
+      "issuer": facebook.toString(),
+      "authorization_endpoint": "https://www.facebook.com/v2.8/dialog/oauth",
+      "token_endpoint": "https://graph.facebook.com/v2.8/oauth/access_token",
+      "userinfo_endpoint": "https://graph.facebook.com/v2.8/879023912133394",
+      "response_types_supported": ["token", "code", "code token"],
+      "token_endpoint_auth_methods_supported": ["client_secret_post"],
+      "scopes_supported": [
+        "public_profile",
+        "user_friends",
+        "email",
+        "user_about_me",
+        "user_actions.books",
+        "user_actions.fitness",
+        "user_actions.music",
+        "user_actions.news",
+        "user_actions.video",
+        "user_birthday",
+        "user_education_history",
+        "user_events",
+        "user_games_activity",
+        "user_hometown",
+        "user_likes",
+        "user_location",
+        "user_managed_groups",
+        "user_photos",
+        "user_posts",
+        "user_relationships",
+        "user_relationship_details",
+        "user_religion_politics",
+        "user_tagged_places",
+        "user_videos",
+        "user_website",
+        "user_work_history",
+        "read_custom_friendlists",
+        "read_insights",
+        "read_audience_network_insights",
+        "read_page_mailboxes",
+        "manage_pages",
+        "publish_pages",
+        "publish_actions",
+        "rsvp_event",
+        "pages_show_list",
+        "pages_manage_cta",
+        "pages_manage_instant_articles",
+        "ads_read",
+        "ads_management",
+        "business_management",
+        "pages_messaging",
+        "pages_messaging_subscriptions",
+        "pages_messaging_phone_number"
+      ]
+    })),
     google: null,
     yahoo: null,
     microsoft: null,
@@ -139,19 +122,6 @@ class Issuer {
     return _discoveries[uri] =
         new Issuer(new OpenIdProviderMetadata.fromJson(json));
   }
-
-  /// Finds the [JsonWebKey] that matches the `kid` argument.
-  Future<JsonWebKey> findJsonWebKey(String kid) async {
-    var set = findKeySetFromCache(metadata.jwksUri);
-    if (set == null || set.findKey(kid) == null) {
-      set = addKeySetToCache(metadata.jwksUri,
-          new JsonWebKeySet.fromJson(await http.get(metadata.jwksUri)));
-    }
-    var key = set.findKey(kid);
-    print("findJonWebKey $kid ${set.keys.map((k) => k.keyId)}");
-    if (key == null) throw new KeyNotFoundException(this, kid);
-    return key;
-  }
 }
 
 /// Represents the client application.
@@ -168,12 +138,14 @@ class Client {
   Client(this.issuer, this.clientId, [this.clientSecret]);
 
   static Future<Client> forIdToken(String idToken) async {
-    var token = new IdToken.decode(idToken);
-    if (token.openIdClaimsSet.issuer == null)
-      throw new ArgumentError("Token has no issuer.");
-    var issuer = await Issuer.discover(token.openIdClaimsSet.issuer);
-    var clientId = token.openIdClaimsSet.authorizedParty ??
-        token.openIdClaimsSet.audience.single;
+    var token = JsonWebToken.unverified(idToken);
+    var claims = new OpenIdClaims.fromJson(token.claims.toJson());
+    if (claims.issuer == null) throw new ArgumentError("Token has no issuer.");
+    var issuer = await Issuer.discover(claims.issuer);
+    if (!await token.verify(issuer._keyStore)) {
+      throw new ArgumentError("Unable to verify token");
+    }
+    var clientId = claims.authorizedParty ?? claims.audience.single;
     return new Client(issuer, clientId);
   }
 
@@ -185,18 +157,21 @@ class Client {
           String idToken}) =>
       new Credential._(
           this,
-          new TokenResponse(
-              accessToken: accessToken,
-              tokenType: tokenType,
-              refreshToken: refreshToken,
-              idToken: new IdToken.decode(idToken)));
+          new TokenResponse.fromJson({
+            "access_token": accessToken,
+            "token_type": tokenType,
+            "refresh_token": refreshToken,
+            "id_token": idToken
+          }),
+          null);
 }
 
 class Credential {
-  final TokenResponse _token;
+  TokenResponse _token;
   final Client client;
+  final String nonce;
 
-  Credential._(this.client, this._token);
+  Credential._(this.client, this._token, this.nonce);
 
   Future<UserInfo> getUserInfo() async {
     var uri = client.issuer.metadata.userinfoEndpoint;
@@ -206,8 +181,19 @@ class Credential {
     return new UserInfo.fromJson(await _get(uri));
   }
 
-  Future _get(uri) {
-    if (_token.accessToken == null) throw new StateError("No access token.");
+  Future _get(uri) async {
+    if (_token.accessToken == null) {
+      var json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
+        "grant_type": "refresh_token",
+        "refresh_token": _token.refreshToken,
+        "client_id": client.clientId,
+      });
+      if (json["error"] != null) {
+        throw new Exception(json["error_description"]);
+      }
+
+      _token = new TokenResponse.fromJson(json);
+    }
     if (_token.tokenType != null && _token.tokenType.toLowerCase() != "bearer")
       throw new UnsupportedError("Unknown token type: ${_token.tokenType}");
 
@@ -217,37 +203,22 @@ class Credential {
 
   IdToken get idToken => _token.idToken;
 
-  Future<Set<ConstraintViolation>> validateToken(
-      {bool validateClaims: true, bool validateExpiry: true}) async {
-    var claimsContext;
-    if (validateClaims) {
-      var expiryTolerance = new Duration(
-          seconds: validateExpiry ? 30 : double.MAX_FINITE.floor());
-      var validateAud = (idToken.header.algorithm != JsonWebAlgorithm.HS256);
-      claimsContext = new IdTokenValidationContext(
-          expiryTolerance: expiryTolerance,
-          issuer: client.issuer.metadata.issuer,
-          clientId: client.clientId,
-          validateIssuerAndAudience: validateAud);
+  Stream<Exception> validateToken(
+      {bool validateClaims: true, bool validateExpiry: true}) async* {
+    var keyStore = new JsonWebKeyStore()
+      ..addKeySetUrl(client.issuer.metadata.jwksUri);
+    if (!await idToken.verify(keyStore)) {
+      yield new JoseException("Could not verify token signature");
     }
 
-    var signContext;
-    if (idToken.header.algorithm == JsonWebAlgorithm.RS256) {
-      var key = await client.issuer.findJsonWebKey(idToken.header.keyId);
-      signContext =
-          new JwaRsaSignatureContext.withKeys(rsaPublicKey: key.publicKey);
-    } else if (idToken.header.algorithm == JsonWebAlgorithm.HS256) {
-      signContext = new JwaSymmetricKeySignatureContext(client.clientSecret);
-    } else {
-      throw new UnsupportedError(
-          "Unsupported algorithm ${idToken.header.algorithm}");
-    }
-
-    var context = new JwtValidationContext(signContext, claimsContext)
-      ..supportedAlgorithms
-          .addAll([JsonWebAlgorithm.RS256, JsonWebAlgorithm.HS256]);
-    return idToken.validate(context);
+    yield* new Stream.fromIterable(idToken.claims.validate(
+        expiryTolerance: validateExpiry ? const Duration(seconds: 30) : null,
+        issuer: client.issuer.metadata.issuer,
+        clientId: client.clientId,
+        nonce: nonce));
   }
+
+  String get refreshToken => _token.refreshToken;
 }
 
 class Flow {
@@ -257,7 +228,7 @@ class Flow {
 
   final List<String> scopes = [];
 
-  String state;
+  final String state = _randomString(20);
 
   Uri redirectUri = Uri.parse("http://localhost");
 
@@ -269,6 +240,16 @@ class Flow {
         break;
       }
     }
+
+    var verifier = _randomString(50);
+    var challenge = base64Url
+        .encode(new SHA256Digest()
+            .process(new Uint8List.fromList(verifier.codeUnits)))
+        .replaceAll("=", "");
+    _proofKeyForCodeExchange = {
+      "code_verifier": verifier,
+      "code_challenge": challenge
+    };
   }
 
   Flow.authorizationCode(Client client) : this._("code", client);
@@ -282,22 +263,41 @@ class Flow {
   Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
 
-  Map<String, String> get _authenticationUriParameters => {
-        "response_type": responseType,
-        "scope": scopes.join(" "),
-        "client_id": client.clientId,
-        "redirect_uri": redirectUri.toString(),
-        "state": state
-      }..addAll(
-          responseType.split(" ").contains("id_token") ? {"nonce": "xx"} : {});
+  Map<String, String> _proofKeyForCodeExchange;
+
+  final String _nonce = _randomString(16);
+
+  Map<String, String> get _authenticationUriParameters {
+    var v = {
+      "response_type": responseType,
+      "scope": scopes.join(" "),
+      "client_id": client.clientId,
+      "redirect_uri": redirectUri.toString(),
+      "state": state
+    }..addAll(
+        responseType.split(" ").contains("id_token") ? {"nonce": _nonce} : {});
+
+    if (responseType == "code" && client.clientSecret == null) {
+      v.addAll({
+        "code_challenge_method": "S256",
+        "code_challenge": _proofKeyForCodeExchange["code_challenge"]
+      });
+    }
+    return v;
+  }
 
   Future<TokenResponse> _getToken(String code) async {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     var json;
-    if (client.clientSecret == null) {
-      throw new StateError("Client secret not known.");
-    }
-    if (methods.contains("client_secret_post")) {
+    if (client.clientSecret == null && false) {
+      json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
+        "grant_type": "authorization_code",
+        "code": code,
+        "redirect_uri": redirectUri.toString(),
+        "client_id": client.clientId,
+        "code_verifier": _proofKeyForCodeExchange["code_verifier"]
+      });
+    } else if (methods.contains("client_secret_post")) {
       json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
         "grant_type": "authorization_code",
         "code": code,
@@ -307,7 +307,7 @@ class Flow {
       });
     } else if (methods.contains("client_secret_basic")) {
       var h =
-          BASE64.encode("${client.clientId}:${client.clientSecret}".codeUnits);
+          base64.encode("${client.clientId}:${client.clientSecret}".codeUnits);
       json = await http.post(client.issuer.metadata.tokenEndpoint, headers: {
         "authorization": "Basic $h"
       }, body: {
@@ -318,18 +318,32 @@ class Flow {
     } else {
       throw new UnsupportedError("Unknown auth methods: $methods");
     }
+    if (json["error"] != null) {
+      throw new Exception(json["error_description"]);
+    }
     return new TokenResponse.fromJson(json);
   }
 
   Future<Credential> callback(Map<String, String> response) async {
+    if (response["state"] != state) {
+      throw new ArgumentError("State does not match");
+    }
     if (response.containsKey("code")) {
       var code = response["code"];
-      return new Credential._(client, await _getToken(code));
+      return new Credential._(client, await _getToken(code), null);
     } else if (response.containsKey("access_token") ||
         response.containsKey("id_token")) {
-      return new Credential._(client, new TokenResponse.fromJson(response));
+      return new Credential._(
+          client, new TokenResponse.fromJson(response), _nonce);
     } else {
       throw new ArgumentError("Invalid response: $response");
     }
   }
+}
+
+String _randomString(int length) {
+  var r = new Random.secure();
+  var chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  return new Iterable.generate(50, (_) => chars[r.nextInt(chars.length)])
+      .join();
 }

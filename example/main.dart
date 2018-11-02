@@ -1,18 +1,24 @@
 // Copyright (c) 2017, rbellens. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:openid_client/openid_client.dart';
-import 'package:openid_client/src/html.dart';
+import 'package:openid_client/openid_client_browser.dart';
 import 'dart:html' hide Client, Credential;
 import 'dart:convert';
-import 'package:angular2/platform/browser.dart';
-import 'package:angular2/core.dart';
+import 'package:angular/angular.dart';
 
-main() async {
-  bootstrap(AppComponent);
+import 'main.template.dart' as self;
+
+@GenerateInjector([])
+final InjectorFactory injector = self.injector$Injector;
+
+void main() {
+  runApp(self.AppComponentNgFactory, createInjector: injector);
 }
 
-@Component(selector: 'my-app', templateUrl: 'app_component.html')
+@Component(selector: 'my-app', templateUrl: 'app_component.html', directives: [
+  NgFor,
+  NgIf,
+])
 class AppComponent {
   List<Uri> issuers = Issuer.knownIssuers.toList();
 
@@ -31,7 +37,9 @@ class AppComponent {
   UserInfo userinfo;
 
   AppComponent() {
-    allClients = JSON.decode(window.localStorage["openid_clients"] ?? "{}");
+    var map = json.decode(window.localStorage["openid_clients"] ?? "{}") as Map;
+    allClients = new Map.fromIterables(
+        map.keys, map.values.map((v) => (v as List).cast<String>()));
 
     () async {
       if (window.localStorage.containsKey("issuer")) {
@@ -59,7 +67,7 @@ class AppComponent {
     print("select client $v");
     if (!clients.contains(v)) {
       clients.add(v);
-      window.localStorage["openid_clients"] = JSON.encode(allClients);
+      window.localStorage["openid_clients"] = json.encode(allClients);
     }
     window.localStorage["client_id"] = v;
     selectedClient = new Client(selectedIssuer, v);
