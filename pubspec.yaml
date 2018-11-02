@@ -9,11 +9,14 @@ environment:
 
 dependencies:
   jose: ^0.1.0
+  pointycastle: ^1.0.0-rc4
+  http: ^0.12.0
+  logging: ^0.11.3+2
+  args: ^1.5.0
 
 dev_dependencies:
   test: ^1.0.0
   angular: ^5.0.0
-  args: ^1.5.0
 
 executables:
   openid_client: openid_client
