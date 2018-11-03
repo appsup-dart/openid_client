@@ -228,11 +228,12 @@ class Flow {
 
   final List<String> scopes = [];
 
-  final String state = _randomString(20);
+  final String state;
 
   Uri redirectUri = Uri.parse("http://localhost");
 
-  Flow._(this.responseType, this.client) {
+  Flow._(this.responseType, this.client, {String state})
+      : state = state ?? _randomString(20) {
     var scopes = client.issuer.metadata.scopesSupported;
     for (var s in const ["openid", "profile", "email"]) {
       if (scopes.contains(s)) {
@@ -252,13 +253,15 @@ class Flow {
     };
   }
 
-  Flow.authorizationCode(Client client) : this._("code", client);
+  Flow.authorizationCode(Client client, {String state})
+      : this._("code", client, state: state);
 
-  Flow.implicit(Client client)
+  Flow.implicit(Client client, {String state})
       : this._(
             ["token id_token", "id_token", "token"].firstWhere((v) =>
                 client.issuer.metadata.responseTypesSupported.contains(v)),
-            client);
+            client,
+            state: state);
 
   Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
