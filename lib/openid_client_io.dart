@@ -36,7 +36,7 @@ class Authenticator {
 
   static Future<HttpServer> _startServer(int port) async {
     return _requestServers[port] ??=
-        (HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port)
+        (HttpServer.bind(InternetAddress.loopbackIPv4, port)
           ..then((requestServer) async {
             await for (var request in requestServer) {
               request.response.statusCode = 200;
