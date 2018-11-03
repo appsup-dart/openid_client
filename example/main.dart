@@ -75,6 +75,7 @@ class AppComponent {
     credential = null;
     userinfo = null;
     credential = await authenticator.credential;
+    if (credential == null) return;
     print("select client $credential");
     userinfo = await credential.getUserInfo();
     print("userinfo $userinfo");
