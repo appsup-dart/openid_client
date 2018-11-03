@@ -2,12 +2,6 @@ import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
 import 'package:logging/logging.dart';
-// ignore: URI_DOES_NOT_EXIST
-import 'http_util/browser.dart'
-// ignore: URI_DOES_NOT_EXIST
-    if (dart.library.io) 'http_util/io.dart'
-// ignore: URI_DOES_NOT_EXIST
-    if (dart.library.html) 'http_util/browser.dart';
 
 final _logger = new Logger("openid_client");
 
@@ -31,7 +25,7 @@ _processResponse(http.Response response) {
 }
 
 Future<T> _withClient<T>(Future<T> fn(http.Client client)) async {
-  var client = factory();
+  var client = new http.Client();
   try {
     return await fn(client);
   } finally {
