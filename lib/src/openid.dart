@@ -292,7 +292,7 @@ class Flow {
   Future<TokenResponse> _getToken(String code) async {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     var json;
-    if (client.clientSecret == null && false) {
+    if (client.clientSecret == null) {
       json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
         "grant_type": "authorization_code",
         "code": code,
