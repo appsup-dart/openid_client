@@ -11,19 +11,24 @@ class Authenticator {
 
   final Function(String url) urlLancher;
 
+  final int port;
+
   Authenticator(Client client,
-      {int port: 3000,
+      {this.port: 3000,
       this.urlLancher: _runBrowser,
-      Iterable<String> scopes: const []})
-      : flow = new Flow.authorizationCode(client)
+      Iterable<String> scopes: const [],
+      Uri redirectUri})
+      : flow = redirectUri == null
+            ? new Flow.authorizationCodeWithPKCE(client)
+            : new Flow.authorizationCode(client)
           ..scopes.addAll(scopes)
-          ..redirectUri = Uri.parse("http://localhost:$port/cb");
+          ..redirectUri = redirectUri ?? Uri.parse("http://localhost:$port/cb");
 
   Future<Credential> authorize() async {
     var state = flow.authenticationUri.queryParameters["state"];
 
     _requestsByState[state] = new Completer();
-    await _startServer(flow.redirectUri.port);
+    await _startServer(port);
     urlLancher(flow.authenticationUri.toString());
 
     var response = await _requestsByState[state].future;

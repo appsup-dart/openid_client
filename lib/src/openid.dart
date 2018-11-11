@@ -173,6 +173,8 @@ class Credential {
 
   Credential._(this.client, this._token, this.nonce);
 
+  Map<String, dynamic> get response => _token.toJson();
+
   Future<UserInfo> getUserInfo() async {
     var uri = client.issuer.metadata.userinfoEndpoint;
     if (uri == null) {
@@ -221,7 +223,11 @@ class Credential {
   String get refreshToken => _token.refreshToken;
 }
 
+enum FlowType { implicit, authorizationCode, proofKeyForCodeExchange }
+
 class Flow {
+  final FlowType type;
+
   final String responseType;
 
   final Client client;
@@ -232,7 +238,7 @@ class Flow {
 
   Uri redirectUri = Uri.parse("http://localhost");
 
-  Flow._(this.responseType, this.client, {String state})
+  Flow._(this.type, this.responseType, this.client, {String state})
       : state = state ?? _randomString(20) {
     var scopes = client.issuer.metadata.scopesSupported;
     for (var s in const ["openid", "profile", "email"]) {
@@ -254,10 +260,14 @@ class Flow {
   }
 
   Flow.authorizationCode(Client client, {String state})
-      : this._("code", client, state: state);
+      : this._(FlowType.authorizationCode, "code", client, state: state);
+
+  Flow.authorizationCodeWithPKCE(Client client, {String state})
+      : this._(FlowType.proofKeyForCodeExchange, "code", client, state: state);
 
   Flow.implicit(Client client, {String state})
       : this._(
+            FlowType.implicit,
             ["token id_token", "id_token", "token"].firstWhere((v) =>
                 client.issuer.metadata.responseTypesSupported.contains(v)),
             client,
@@ -280,7 +290,7 @@ class Flow {
     }..addAll(
         responseType.split(" ").contains("id_token") ? {"nonce": _nonce} : {});
 
-    if (responseType == "code" && client.clientSecret == null) {
+    if (type == FlowType.proofKeyForCodeExchange) {
       v.addAll({
         "code_challenge_method": "S256",
         "code_challenge": _proofKeyForCodeExchange["code_challenge"]
@@ -292,7 +302,7 @@ class Flow {
   Future<TokenResponse> _getToken(String code) async {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     var json;
-    if (client.clientSecret == null) {
+    if (type == FlowType.proofKeyForCodeExchange) {
       json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
         "grant_type": "authorization_code",
         "code": code,
@@ -331,7 +341,9 @@ class Flow {
     if (response["state"] != state) {
       throw new ArgumentError("State does not match");
     }
-    if (response.containsKey("code")) {
+    if (response.containsKey("code") &&
+        (type == FlowType.proofKeyForCodeExchange ||
+            client.clientSecret != null)) {
       var code = response["code"];
       return new Credential._(client, await _getToken(code), null);
     } else if (response.containsKey("access_token") ||
@@ -339,7 +351,8 @@ class Flow {
       return new Credential._(
           client, new TokenResponse.fromJson(response), _nonce);
     } else {
-      throw new ArgumentError("Invalid response: $response");
+      return new Credential._(
+          client, new TokenResponse.fromJson(response), _nonce);
     }
   }
 }
