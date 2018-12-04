@@ -209,7 +209,9 @@ class Credential {
       {bool validateClaims: true, bool validateExpiry: true}) async* {
     var keyStore = new JsonWebKeyStore()
       ..addKeySetUrl(client.issuer.metadata.jwksUri);
-    if (!await idToken.verify(keyStore)) {
+    if (!await idToken.verify(keyStore,
+        allowedArguments:
+            client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
       yield new JoseException("Could not verify token signature");
     }
 
