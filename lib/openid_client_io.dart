@@ -39,7 +39,7 @@ class Authenticator {
   /// cancel the ongoing auth flow, i.e. when the user closed the webview/browser without a successful login
   Future<void> cancel() async {
     final state = flow.authenticationUri.queryParameters["state"];
-    _requestsByState[state]?.completeError("cancelled");
+    _requestsByState[state]?.completeError(new Exception("Flow was cancelled"));
     final server = await _requestServers.remove(port);
     await server.close();
   }
