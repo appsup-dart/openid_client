@@ -36,6 +36,13 @@ class Authenticator {
     return flow.callback(response);
   }
 
+  /// cancel the ongoing auth flow, i.e. when the user closed the webview/browser without a successful login
+  void cancel() {
+    var state = flow.authenticationUri.queryParameters["state"];
+    _requestsByState[state]?.completeError("cancelled");
+    _requestServers.remove(port)?.then((s) => s.close());
+  }
+
   static Map<int, Future<HttpServer>> _requestServers = {};
   static Map<String, Completer<Map<String, String>>> _requestsByState = {};
 
