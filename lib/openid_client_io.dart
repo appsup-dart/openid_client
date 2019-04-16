@@ -41,7 +41,9 @@ class Authenticator {
     final state = flow.authenticationUri.queryParameters["state"];
     _requestsByState[state]?.completeError(new Exception("Flow was cancelled"));
     final server = await _requestServers.remove(port);
-    await server.close();
+    if (server != null) {
+      await server.close();
+    }
   }
 
   static Map<int, Future<HttpServer>> _requestServers = {};
