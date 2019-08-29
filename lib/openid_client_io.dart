@@ -46,10 +46,18 @@ class Authenticator {
             await for (var request in requestServer) {
               request.response.statusCode = 200;
               request.response.headers.set("Content-type", "text/html");
-              request.response.writeln("<html>"
-                  "<h1>You can now close this window</h1>"
+              request.response.writeln(
+                  "<html>"
+                    "<div style='width: 100%; text-align: center; font-family: Arial, Helvetica, sans-serif'>"
+                      "<img src='https://login.devolutions.com/op/assets/devolutions-logo.png' width='100%' alt='Devolutions'/>"
+                      "<h2>Success!</h2>"
+                      "<div style='background-color:#d3f5e0; border-left: 10px solid #49fc8e'>"
+                        "<p style='padding: 10px; color:#616161'>You can now close this page!</p>"
+                      "</div>"
+                    "</div>"
                   "<script>window.close();</script>"
-                  "</html>");
+                  "</html>"
+              );
               request.response.close();
               var result = request.requestedUri.queryParameters;
 
