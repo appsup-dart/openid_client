@@ -55,7 +55,6 @@ class Authenticator {
                         "<p style='padding: 10px; color:#616161'>You can now close this page!</p>"
                       "</div>"
                     "</div>"
-                  "<script>window.close();</script>"
                   "</html>"
               );
               request.response.close();
