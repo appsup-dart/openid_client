@@ -50,7 +50,7 @@ class Authenticator {
                   "<html>"
                     "<div style='width: 100%; text-align: center; font-family: Arial, Helvetica, sans-serif'>"
                       "<img src='https://login.devolutions.com/op/assets/devolutions-logo.png' width='100%' alt='Devolutions'/>"
-                      "<h2>Success!</h2>"
+                      "<span style='font-size: 125px'>Success!</span>"
                       "<div style='background-color:#d3f5e0; border-left: 10px solid #49fc8e'>"
                         "<p style='padding: 10px; color:#616161'>You can now close this page!</p>"
                       "</div>"
