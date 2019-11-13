@@ -48,7 +48,6 @@ class Authenticator {
               request.response.headers.set("Content-type", "text/html");
               request.response.writeln(
                   "<html>"
-                    "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
                     "<body>"
                       "<div style='width: 100%; text-align: center; font-family: Arial, Helvetica, sans-serif'>"
                         "<img src='https://login.devolutions.com/op/assets/devolutions-logo.png' width='100%' alt='Devolutions'/>"
