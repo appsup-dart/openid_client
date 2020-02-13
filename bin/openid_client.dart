@@ -313,7 +313,7 @@ final Map<String, dynamic> _configOptions = () {
   if (f.existsSync()) {
     return json.decode(f.readAsStringSync());
   }
-  return {};
+  return <String, dynamic>{};
 }();
 
 void _saveConfig() {
