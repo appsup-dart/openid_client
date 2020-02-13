@@ -225,7 +225,12 @@ class Credential {
   String get refreshToken => _token.refreshToken;
 }
 
-enum FlowType { implicit, authorizationCode, proofKeyForCodeExchange }
+enum FlowType {
+  implicit,
+  authorizationCode,
+  proofKeyForCodeExchange,
+  jwtBearer
+}
 
 class Flow {
   final FlowType type;
@@ -275,6 +280,8 @@ class Flow {
             client,
             state: state);
 
+  Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
+
   Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
 
@@ -304,7 +311,12 @@ class Flow {
   Future<TokenResponse> _getToken(String code) async {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     var json;
-    if (type == FlowType.proofKeyForCodeExchange) {
+    if (type == FlowType.jwtBearer) {
+      json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
+        "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+        "assertion": code,
+      });
+    } else if (type == FlowType.proofKeyForCodeExchange) {
       json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
         "grant_type": "authorization_code",
         "code": code,
@@ -343,7 +355,10 @@ class Flow {
     if (response["state"] != state) {
       throw new ArgumentError("State does not match");
     }
-    if (response.containsKey("code") &&
+    if (type == FlowType.jwtBearer) {
+      var code = response["jwt"];
+      return new Credential._(client, await _getToken(code), null);
+    } else if (response.containsKey("code") &&
         (type == FlowType.proofKeyForCodeExchange ||
             client.clientSecret != null)) {
       var code = response["code"];

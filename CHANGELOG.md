@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.5
+
+- Add jwtBearer flow for grant_type `urn:ietf:params:oauth:grant-type:jwt-bearer`
+
+
 ## 0.2.4
 
 - Allow only signing algorithms specified in `id_token_signing_alg_values_supported` 
