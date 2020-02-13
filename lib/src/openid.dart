@@ -184,24 +184,12 @@ class Credential {
   }
 
   Future _get(uri) async {
-    if (_token.accessToken == null) {
-      var json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
-        "grant_type": "refresh_token",
-        "refresh_token": _token.refreshToken,
-        "client_id": client.clientId,
-        if (client.clientSecret != null) 'client_secret': client.clientSecret
-      });
-      if (json["error"] != null) {
-        throw new Exception(json["error_description"]);
-      }
-
-      _token = new TokenResponse.fromJson(json);
-    }
-    if (_token.tokenType != null && _token.tokenType.toLowerCase() != "bearer")
-      throw new UnsupportedError("Unknown token type: ${_token.tokenType}");
+    var token = await getTokenResponse();
+    if (token.tokenType != null && token.tokenType.toLowerCase() != "bearer")
+      throw new UnsupportedError("Unknown token type: ${token.tokenType}");
 
     return http
-        .get(uri, headers: {"authorization": "Bearer ${_token.accessToken}"});
+        .get(uri, headers: {"authorization": "Bearer ${token.accessToken}"});
   }
 
   IdToken get idToken => _token.idToken;
@@ -225,9 +213,24 @@ class Credential {
 
   String get refreshToken => _token.refreshToken;
 
-  String get accessToken => _token.accessToken;
+  Future<TokenResponse> getTokenResponse() async {
+    if (_token.accessToken != null &&
+        _token.expiresAt.isAfter(DateTime.now())) {
+      return _token;
+    }
 
-  TokenResponse get tokenResponse => _token;
+    var json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
+      "grant_type": "refresh_token",
+      "refresh_token": _token.refreshToken,
+      "client_id": client.clientId,
+      if (client.clientSecret != null) 'client_secret': client.clientSecret
+    });
+    if (json["error"] != null) {
+      throw new Exception(json["error_description"]);
+    }
+
+    return _token = new TokenResponse.fromJson(json);
+  }
 }
 
 enum FlowType {

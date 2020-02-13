@@ -22,5 +22,15 @@ class TokenResponse extends JsonObject {
   IdToken get idToken =>
       getTyped("id_token", factory: (v) => new IdToken.unverified(v));
 
-  TokenResponse.fromJson(Map<String, dynamic> json) : super.from(json);
+  DateTime get expiresAt => getTyped("expires_at");
+
+  TokenResponse.fromJson(Map<String, dynamic> json)
+      : super.from({
+          if (json.containsKey('expires_in'))
+            'expires_at': DateTime.now()
+                    .add(Duration(seconds: json['expires_in']))
+                    .millisecondsSinceEpoch ~/
+                1000,
+          ...json,
+        });
 }
