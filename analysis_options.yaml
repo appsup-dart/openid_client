@@ -1,22 +1,14 @@
-analyzer:
-  exclude: [build/**, lib/**, test/**]
-  errors:
-    uri_has_not_been_generated: ignore
-  # Angular plugin support is in beta. You're welcome to try it and report
-  # issues: https://github.com/dart-lang/angular_analyzer_plugin/issues
-  plugins:
-  - angular
+# Defines a default set of lint rules enforced for
+# projects at Google. For details and rationale,
+# see https://github.com/dart-lang/pedantic#enabled-lints.
+include: package:pedantic/analysis_options.yaml
 
-# This file allows you to configure the Dart analyzer.
-#
-# The commented part below is just for inspiration. Read the guide here:
-#   https://www.dartlang.org/guides/language/analysis-options
-
-# analyzer:
-#   strong-mode: true
-#   exclude:
-#     - path/to/excluded/files/**
+# For lint rules and documentation, see http://dart-lang.github.io/linter/lints.
+# Uncomment to specify additional rules.
 # linter:
 #   rules:
-#     # see catalog here: http://dart-lang.github.io/linter/lints/
-#     - hash_and_equals
+#     - camel_case_types
+
+analyzer:
+#   exclude:
+#     - path/to/excluded/files/**

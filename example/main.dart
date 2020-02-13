@@ -37,56 +37,56 @@ class AppComponent {
   UserInfo userinfo;
 
   AppComponent() {
-    var map = json.decode(window.localStorage["openid_clients"] ?? "{}") as Map;
-    allClients = new Map.fromIterables(
+    var map = json.decode(window.localStorage['openid_clients'] ?? '{}') as Map;
+    allClients = Map.fromIterables(
         map.keys, map.values.map((v) => (v as List).cast<String>()));
 
     () async {
-      if (window.localStorage.containsKey("issuer")) {
-        await select(window.localStorage["issuer"]);
+      if (window.localStorage.containsKey('issuer')) {
+        await select(window.localStorage['issuer']);
         if (selectedIssuer != null) {
-          if (window.localStorage.containsKey("client_id")) {
-            selectClient(window.localStorage["client_id"]);
+          if (window.localStorage.containsKey('client_id')) {
+            selectClient(window.localStorage['client_id']);
           }
         }
       }
     }();
-    print("clients $allClients");
+    print('clients $allClients');
   }
 
-  select(v) async {
-    print("select $v");
-    window.localStorage["issuer"] = v;
-    this.selectedClient = null;
-    this.clients = [];
-    this.selectedIssuer = await Issuer.discover(Uri.parse(v));
-    this.clients = allClients[selectedIssuer.metadata.issuer.toString()] ??= [];
+  void select(v) async {
+    print('select $v');
+    window.localStorage['issuer'] = v;
+    selectedClient = null;
+    clients = [];
+    selectedIssuer = await Issuer.discover(Uri.parse(v));
+    clients = allClients[selectedIssuer.metadata.issuer.toString()] ??= [];
   }
 
-  selectClient(String v) async {
-    print("select client $v");
+  void selectClient(String v) async {
+    print('select client $v');
     if (!clients.contains(v)) {
       clients.add(v);
-      window.localStorage["openid_clients"] = json.encode(allClients);
+      window.localStorage['openid_clients'] = json.encode(allClients);
     }
-    window.localStorage["client_id"] = v;
-    selectedClient = new Client(selectedIssuer, v);
-    authenticator = new Authenticator(selectedClient);
+    window.localStorage['client_id'] = v;
+    selectedClient = Client(selectedIssuer, v);
+    authenticator = Authenticator(selectedClient);
     credential = null;
     userinfo = null;
     credential = await authenticator.credential;
     if (credential == null) return;
-    print("select client $credential");
+    print('select client $credential');
     userinfo = await credential.getUserInfo();
-    print("userinfo $userinfo");
+    print('userinfo $userinfo');
     print(userinfo.toJson());
   }
 
-  login() {
+  void login() {
     authenticator.authorize();
   }
 
-  logout() {
+  void logout() {
     userinfo = null;
     authenticator.logout();
   }

@@ -14,20 +14,20 @@ class Authenticator {
   final int port;
 
   Authenticator(Client client,
-      {this.port: 3000,
-      this.urlLancher: _runBrowser,
-      Iterable<String> scopes: const [],
+      {this.port = 3000,
+      this.urlLancher = _runBrowser,
+      Iterable<String> scopes = const [],
       Uri redirectUri})
       : flow = redirectUri == null
-            ? new Flow.authorizationCodeWithPKCE(client)
-            : new Flow.authorizationCode(client)
+            ? Flow.authorizationCodeWithPKCE(client)
+            : Flow.authorizationCode(client)
           ..scopes.addAll(scopes)
-          ..redirectUri = redirectUri ?? Uri.parse("http://localhost:$port/");
+          ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 
   Future<Credential> authorize() async {
-    var state = flow.authenticationUri.queryParameters["state"];
+    var state = flow.authenticationUri.queryParameters['state'];
 
-    _requestsByState[state] = new Completer();
+    _requestsByState[state] = Completer();
     await _startServer(port);
     urlLancher(flow.authenticationUri.toString());
 
@@ -38,61 +38,62 @@ class Authenticator {
 
   /// cancel the ongoing auth flow, i.e. when the user closed the webview/browser without a successful login
   Future<void> cancel() async {
-    final state = flow.authenticationUri.queryParameters["state"];
-    _requestsByState[state]?.completeError(new Exception("Flow was cancelled"));
+    final state = flow.authenticationUri.queryParameters['state'];
+    _requestsByState[state]?.completeError(Exception('Flow was cancelled'));
     final server = await _requestServers.remove(port);
     if (server != null) {
       await server.close();
     }
   }
 
-  static Map<int, Future<HttpServer>> _requestServers = {};
-  static Map<String, Completer<Map<String, String>>> _requestsByState = {};
+  static final Map<int, Future<HttpServer>> _requestServers = {};
+  static final Map<String, Completer<Map<String, String>>> _requestsByState =
+      {};
 
-  static Future<HttpServer> _startServer(int port) async {
+  static Future<HttpServer> _startServer(int port) {
     return _requestServers[port] ??=
         (HttpServer.bind(InternetAddress.loopbackIPv4, port)
           ..then((requestServer) async {
             await for (var request in requestServer) {
               request.response.statusCode = 200;
-              request.response.headers.set("Content-type", "text/html");
-              request.response.writeln("<html>"
-                  "<h1>You can now close this window</h1>"
-                  "<script>window.close();</script>"
-                  "</html>");
-              request.response.close();
+              request.response.headers.set('Content-type', 'text/html');
+              request.response.writeln('<html>'
+                  '<h1>You can now close this window</h1>'
+                  '<script>window.close();</script>'
+                  '</html>');
+              await request.response.close();
               var result = request.requestedUri.queryParameters;
 
-              if (!result.containsKey("state")) continue;
-              var r = _requestsByState.remove(result["state"]);
+              if (!result.containsKey('state')) continue;
+              var r = _requestsByState.remove(result['state']);
               r.complete(result);
               if (_requestsByState.isEmpty) {
                 for (var s in _requestServers.values) {
-                  (await s).close();
+                  await (await s).close();
                 }
                 _requestServers.clear();
               }
             }
 
-            _requestServers.remove(port);
+            await _requestServers.remove(port);
           }));
   }
 }
 
 void _runBrowser(String url) {
   switch (Platform.operatingSystem) {
-    case "linux":
-      Process.run("x-www-browser", [url]);
+    case 'linux':
+      Process.run('x-www-browser', [url]);
       break;
-    case "macos":
-      Process.run("open", [url]);
+    case 'macos':
+      Process.run('open', [url]);
       break;
-    case "windows":
-      Process.run("explorer", [url]);
+    case 'windows':
+      Process.run('explorer', [url]);
       break;
     default:
-      throw new UnsupportedError(
-          "Unsupported platform: ${Platform.operatingSystem}");
+      throw UnsupportedError(
+          'Unsupported platform: ${Platform.operatingSystem}');
       break;
   }
 }
