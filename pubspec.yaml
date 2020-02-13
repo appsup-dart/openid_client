@@ -5,7 +5,7 @@ author: Rik Bellens <rik.bellens@appsup.be>
 homepage: https://github.com/appsup-dart/openid_client
 
 environment:
-  sdk: '>=1.21.0 <3.0.0'
+  sdk: '>=2.3.0 <3.0.0'
 
 dependencies:
   jose: ^0.1.2

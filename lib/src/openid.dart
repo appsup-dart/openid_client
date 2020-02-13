@@ -189,6 +189,7 @@ class Credential {
         "grant_type": "refresh_token",
         "refresh_token": _token.refreshToken,
         "client_id": client.clientId,
+        if (client.clientSecret != null) 'client_secret': client.clientSecret
       });
       if (json["error"] != null) {
         throw new Exception(json["error_description"]);
@@ -326,6 +327,7 @@ class Flow {
         "code": code,
         "redirect_uri": redirectUri.toString(),
         "client_id": client.clientId,
+        if (client.clientSecret != null) 'client_secret': client.clientSecret,
         "code_verifier": _proofKeyForCodeExchange["code_verifier"]
       });
     } else if (methods.contains("client_secret_post")) {
