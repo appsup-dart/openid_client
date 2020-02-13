@@ -182,20 +182,17 @@ class Credential {
     return UserInfo.fromJson(await _get(uri));
   }
 
-  Future _get(uri) async {
-    var token = await getTokenResponse();
-    if (token.tokenType != null && token.tokenType.toLowerCase() != 'bearer') {
-      throw UnsupportedError('Unknown token type: ${token.tokenType}');
-    }
+  http.Client createHttpClient([http.Client baseClient]) =>
+      http.AuthorizedClient(baseClient ?? http.Client(), this);
 
-    return http
-        .get(uri, headers: {'authorization': 'Bearer ${token.accessToken}'});
+  Future _get(uri) async {
+    return http.get(uri, client: createHttpClient());
   }
 
   IdToken get idToken => _token.idToken;
 
   Stream<Exception> validateToken(
-      {bool validateClaims = true, bool validateExpiry: true}) async* {
+      {bool validateClaims = true, bool validateExpiry = true}) async* {
     var keyStore = JsonWebKeyStore()
       ..addKeySetUrl(client.issuer.metadata.jwksUri);
     if (!await idToken.verify(keyStore,

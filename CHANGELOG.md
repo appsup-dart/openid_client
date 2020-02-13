@@ -3,7 +3,8 @@
 ## 0.2.5
 
 - Add jwtBearer flow for grant_type `urn:ietf:params:oauth:grant-type:jwt-bearer`
-
+- Added `getTokenResponse` method
+- Added `createHttpClient` method
 
 ## 0.2.4
 
