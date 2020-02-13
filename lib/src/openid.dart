@@ -223,6 +223,10 @@ class Credential {
   }
 
   String get refreshToken => _token.refreshToken;
+
+  String get accessToken => _token.accessToken;
+
+  TokenResponse get tokenResponse => _token;
 }
 
 enum FlowType {
