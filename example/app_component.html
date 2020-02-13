@@ -2,7 +2,7 @@
 
 <div *ngIf="userinfo == null">
     <input list="issuers" name="issuers" #issuersInput (change)="select(issuersInput.value)"
-           [value]="selectedIssuer?.metadata?.issuer">
+           [value]="selectedIssuer?.metadata?.issuer?.toString()">
     <datalist id="issuers">
         <option *ngFor="let uri of issuers">
             {{ uri }}
@@ -49,7 +49,7 @@
 <div *ngIf="userinfo != null">
 
     <h2 id="name">{{ userinfo.name }}</h2>
-    <img id="picture" [src]="userinfo.picture">
+    <img id="picture" [src]="userinfo.picture?.toString()">
 
     <button (click)="logout()">logout</button>
 </div>
