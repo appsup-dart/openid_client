@@ -51,7 +51,7 @@ class Authenticator {
                     "<meta name='viewport' content='width=device-width, initial-scale=1.0'>"
                     "<body>"
                       "<div style='width: 100%; text-align: center; font-family: Arial, Helvetica, sans-serif'>"
-                        "<img src='https://login.devolutions.com/op/assets/devolutions-logo.png' width='100%' alt='Devolutions'/>"
+                        "<img src='https://webdevolutions.blob.core.windows.net/images/mail/3.0.0/Common/devolutions-logo-blue.png' width='100%' alt='Devolutions'/>"
                         "<span style='font-size: 10vw'>Success!</span>"
                         "<div style='background-color:#d3f5e0; border-left: 10px solid #49fc8e'>"
                           "<p style='padding: 10px; color:#616161; font-size: 6vw'>You can now close this page!</p>"
