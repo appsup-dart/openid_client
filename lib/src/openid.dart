@@ -153,6 +153,8 @@ class Client {
           {String accessToken,
           String tokenType,
           String refreshToken,
+          Duration expiresIn,
+          DateTime expiresAt,
           String idToken}) =>
       Credential._(
           this,
@@ -160,7 +162,11 @@ class Client {
             'access_token': accessToken,
             'token_type': tokenType,
             'refresh_token': refreshToken,
-            'id_token': idToken
+            'id_token': idToken,
+            'expires_in': expiresIn?.inSeconds,
+            'expires_at': expiresAt == null
+                ? null
+                : expiresAt.millisecondsSinceEpoch ~/ 1000
           }),
           null);
 }
