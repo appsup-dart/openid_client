@@ -153,14 +153,16 @@ class Client {
           {String accessToken,
           String tokenType,
           String refreshToken,
-          String idToken}) =>
+          String idToken,
+          int expiresIn}) =>
       Credential._(
           this,
           TokenResponse.fromJson({
             'access_token': accessToken,
             'token_type': tokenType,
             'refresh_token': refreshToken,
-            'id_token': idToken
+            'id_token': idToken,
+            'expires_in': expiresIn
           }),
           null);
 }
