@@ -28,7 +28,7 @@ class TokenResponse extends JsonObject {
       : super.from({
           if (json.containsKey('expires_in'))
             'expires_at': DateTime.now()
-                    .add(Duration(seconds: json['expires_in']))
+                    .add(Duration(seconds: int.parse(json['expires_in'].toString())))
                     .millisecondsSinceEpoch ~/
                 1000,
           ...json,
