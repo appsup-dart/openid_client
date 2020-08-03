@@ -31,6 +31,10 @@ Future post(dynamic url,
 dynamic _processResponse(http.Response response) {
   _logger.fine(
       '${response.request.method} ${response.request.url}: ${response.body}');
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw HttpRequestException(
+        statusCode: response.statusCode, body: json.decode(response.body));
+  }
   return json.decode(response.body);
 }
 
@@ -62,4 +66,12 @@ class AuthorizedClient extends http.BaseClient {
 
     return baseClient.send(request);
   }
+}
+
+class HttpRequestException implements Exception {
+  final int statusCode;
+
+  final dynamic body;
+
+  HttpRequestException({this.statusCode, this.body});
 }
