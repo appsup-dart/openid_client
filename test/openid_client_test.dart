@@ -34,8 +34,10 @@ void main() {
 
   group('IdToken', () {
     test('validate mock id token', () async {
-      var issuer = Issuer(OpenIdProviderMetadata.fromJson(
-          await _readJson('mock/openid-configuration.json')));
+      var configJson = await _readJson('mock/openid-configuration.json');
+      var jwksContent = File(configJson['jwks_uri']).readAsStringSync();
+      configJson['jwks_uri'] = Uri.dataFromString(jwksContent).toString();
+      var issuer = Issuer(OpenIdProviderMetadata.fromJson(configJson));
 
       var client = Client(issuer, 'openid_client');
       var credential = client.createCredential(
