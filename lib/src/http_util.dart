@@ -18,9 +18,14 @@ Future get(dynamic url,
 }
 
 Future post(dynamic url,
-    {Map<String, String> headers, body, Encoding encoding}) async {
-  return _processResponse(await _withClient((client) =>
-      client.post(url, headers: headers, body: body, encoding: encoding)));
+    {Map<String, String> headers,
+    body,
+    Encoding encoding,
+    http.Client client}) async {
+  return _processResponse(await _withClient(
+      (client) =>
+          client.post(url, headers: headers, body: body, encoding: encoding),
+      client));
 }
 
 dynamic _processResponse(http.Response response) {

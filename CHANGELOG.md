@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.3.0
+
+- Add http.Client arguments
+- *Breaking change*: `clientSecret` is now a named argument in `Client` constructor 
+
 ## 0.2.5
 
 - Add jwtBearer flow for grant_type `urn:ietf:params:oauth:grant-type:jwt-bearer`

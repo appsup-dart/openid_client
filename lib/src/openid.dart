@@ -108,7 +108,7 @@ class Issuer {
   static Iterable<Uri> get knownIssuers => _discoveries.keys;
 
   /// Discovers the OpenId Provider's metadata based on its uri.
-  static Future<Issuer> discover(Uri uri) async {
+  static Future<Issuer> discover(Uri uri, {http.Client httpClient}) async {
     if (_discoveries[uri] != null) return _discoveries[uri];
 
     var segments = uri.pathSegments.toList();
@@ -118,7 +118,7 @@ class Issuer {
     segments.addAll(['.well-known', 'openid-configuration']);
     uri = uri.replace(pathSegments: segments);
 
-    var json = await http.get(uri);
+    var json = await http.get(uri, client: httpClient);
     return _discoveries[uri] = Issuer(OpenIdProviderMetadata.fromJson(json));
   }
 }
@@ -134,18 +134,21 @@ class Client {
   /// The [Issuer] representing the OP.
   final Issuer issuer;
 
-  Client(this.issuer, this.clientId, [this.clientSecret]);
+  final http.Client httpClient;
 
-  static Future<Client> forIdToken(String idToken) async {
+  Client(this.issuer, this.clientId, {this.clientSecret, this.httpClient});
+
+  static Future<Client> forIdToken(String idToken,
+      {http.Client httpClient}) async {
     var token = JsonWebToken.unverified(idToken);
     var claims = OpenIdClaims.fromJson(token.claims.toJson());
     if (claims.issuer == null) throw ArgumentError('Token has no issuer.');
-    var issuer = await Issuer.discover(claims.issuer);
+    var issuer = await Issuer.discover(claims.issuer, httpClient: httpClient);
     if (!await token.verify(issuer._keyStore)) {
       throw ArgumentError('Unable to verify token');
     }
     var clientId = claims.authorizedParty ?? claims.audience.single;
-    return Client(issuer, clientId);
+    return Client(issuer, clientId, httpClient: httpClient);
   }
 
   /// Creates a [Credential] for this client.
@@ -189,7 +192,8 @@ class Credential {
   }
 
   http.Client createHttpClient([http.Client baseClient]) =>
-      http.AuthorizedClient(baseClient ?? http.Client(), this);
+      http.AuthorizedClient(
+          baseClient ?? client.httpClient ?? http.Client(), this);
 
   Future _get(uri) async {
     return http.get(uri, client: createHttpClient());

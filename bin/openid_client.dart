@@ -129,7 +129,7 @@ class ConfigureClientCommand extends CommandWithRestArguments {
     }
     _saveConfig();
     return Client(await Issuer.discover(issuer), client['client_id'],
-        client['client_secret']);
+        clientSecret: client['client_secret']);
   }
 }
 
