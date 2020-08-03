@@ -3,7 +3,8 @@
 ## 0.3.0
 
 - Add http.Client arguments
-- *Breaking change*: `clientSecret` is now a named argument in `Client` constructor 
+- *Breaking change*: `clientSecret` is now a named argument in `Client` constructor
+- Add optional `forceRefresh` argument to `getTokenResponse` 
 
 ## 0.2.5
 

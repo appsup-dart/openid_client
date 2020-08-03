@@ -219,8 +219,9 @@ class Credential {
 
   String get refreshToken => _token.refreshToken;
 
-  Future<TokenResponse> getTokenResponse() async {
-    if (_token.accessToken != null &&
+  Future<TokenResponse> getTokenResponse([bool forceRefresh = false]) async {
+    if (!forceRefresh &&
+        _token.accessToken != null &&
         _token.expiresAt.isAfter(DateTime.now())) {
       return _token;
     }
