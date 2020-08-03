@@ -166,10 +166,9 @@ class Client {
             'token_type': tokenType,
             'refresh_token': refreshToken,
             'id_token': idToken,
-            'expires_in': expiresIn?.inSeconds,
-            'expires_at': expiresAt == null
-                ? null
-                : expiresAt.millisecondsSinceEpoch ~/ 1000
+            if (expiresIn != null) 'expires_in': expiresIn?.inSeconds,
+            if (expiresAt != null)
+              'expires_at': expiresAt.millisecondsSinceEpoch ~/ 1000
           }),
           null);
 }
