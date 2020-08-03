@@ -346,37 +346,45 @@ class Flow {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     var json;
     if (type == FlowType.jwtBearer) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
-        'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-        'assertion': code,
-      });
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
+          body: {
+            'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+            'assertion': code,
+          },
+          client: client.httpClient);
     } else if (type == FlowType.proofKeyForCodeExchange) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
-        'grant_type': 'authorization_code',
-        'code': code,
-        'redirect_uri': redirectUri.toString(),
-        'client_id': client.clientId,
-        if (client.clientSecret != null) 'client_secret': client.clientSecret,
-        'code_verifier': _proofKeyForCodeExchange['code_verifier']
-      });
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
+          body: {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirectUri.toString(),
+            'client_id': client.clientId,
+            if (client.clientSecret != null)
+              'client_secret': client.clientSecret,
+            'code_verifier': _proofKeyForCodeExchange['code_verifier']
+          },
+          client: client.httpClient);
     } else if (methods.contains('client_secret_post')) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
-        'grant_type': 'authorization_code',
-        'code': code,
-        'redirect_uri': redirectUri.toString(),
-        'client_id': client.clientId,
-        'client_secret': client.clientSecret
-      });
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
+          body: {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirectUri.toString(),
+            'client_id': client.clientId,
+            'client_secret': client.clientSecret
+          },
+          client: client.httpClient);
     } else if (methods.contains('client_secret_basic')) {
       var h =
           base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
-      json = await http.post(client.issuer.metadata.tokenEndpoint, headers: {
-        'authorization': 'Basic $h'
-      }, body: {
-        'grant_type': 'authorization_code',
-        'code': code,
-        'redirect_uri': redirectUri.toString()
-      });
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
+          headers: {'authorization': 'Basic $h'},
+          body: {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirectUri.toString()
+          },
+          client: client.httpClient);
     } else {
       throw UnsupportedError('Unknown auth methods: $methods');
     }
