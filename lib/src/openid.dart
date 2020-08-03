@@ -239,6 +239,25 @@ class Credential {
 
     return _token = TokenResponse.fromJson(json);
   }
+
+  Credential.fromJson(Map<String, dynamic> json, {http.Client httpClient})
+      : this._(
+            Client(
+                Issuer(OpenIdProviderMetadata.fromJson(
+                    (json['issuer'] as Map).cast())),
+                json['client_id'],
+                clientSecret: json['client_secret'],
+                httpClient: httpClient),
+            TokenResponse.fromJson((json['token'] as Map).cast()),
+            json['nonce']);
+
+  Map<String, dynamic> toJson() => {
+        'issuer': client.issuer.metadata.toJson(),
+        'client_id': client.clientId,
+        'client_secret': client.clientSecret,
+        'token': _token.toJson(),
+        'nonce': nonce
+      };
 }
 
 enum FlowType {

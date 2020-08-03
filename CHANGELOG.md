@@ -4,7 +4,8 @@
 
 - Add http.Client arguments
 - *Breaking change*: `clientSecret` is now a named argument in `Client` constructor
-- Add optional `forceRefresh` argument to `getTokenResponse` 
+- Add optional `forceRefresh` argument to `getTokenResponse`
+- Add `fromJson` and `toJson` to `Credential` 
 
 ## 0.2.5
 
