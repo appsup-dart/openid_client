@@ -26,7 +26,7 @@ class TokenResponse extends JsonObject {
 
   TokenResponse.fromJson(Map<String, dynamic> json)
       : super.from({
-          if (json['expires_in'] != null && !json['expires_at'] == null)
+          if (json['expires_in'] != null && json['expires_at'] == null)
             'expires_at': DateTime.now()
                     .add(Duration(
                         seconds: json['expires_in'] is String
