@@ -27,6 +27,38 @@
             </li>
         </ul>
 
+        <h3>endpoints </h3>
+        <table>
+            <tr>
+                <th>authorization_endpoint</th>
+                <td>{{selectedIssuer.metadata.authorizationEndpoint}}</td>
+            </tr>
+            <tr>
+                <th>token_endpoint</th>
+                <td>{{selectedIssuer.metadata.tokenEndpoint}}</td>
+            </tr>
+            <tr>
+                <th>userinfo_endpoint</th>
+                <td>{{selectedIssuer.metadata.userinfoEndpoint}}</td>
+            </tr>
+            <tr>
+                <th>registration_endpoint</th>
+                <td>{{selectedIssuer.metadata.registrationEndpoint}}</td>
+            </tr>
+            <tr>
+                <th>end_session_endpoint</th>
+                <td>{{selectedIssuer.metadata.endSessionEndpoint}}</td>
+            </tr>
+            <tr>
+                <th>revocation_endpoint</th>
+                <td>{{selectedIssuer.metadata.revocationEndpoint}}</td>
+            </tr>
+            <tr>
+                <th>introspection_endpoint</th>
+                <td>{{selectedIssuer.metadata.introspectionEndpoint}}</td>
+            </tr>
+        </table>
+
         <h3>client</h3>
         <label for="clients">client id</label>
         <input list="clients" name="clients" #clientsInput (change)="selectClient(clientsInput.value)"
