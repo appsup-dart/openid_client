@@ -44,11 +44,11 @@ class Authenticator {
             Uri.parse(window.location.href).removeFragment().toString();
       }
     }
-    try {
-      var c = await flow.callback(q.cast());
-      return c;
-    } on ArgumentError {
-      return null;
+    if (q.containsKey('access_token') ||
+        q.containsKey('code') ||
+        q.containsKey('id_token')) {
+      return await flow.callback(q.cast());
     }
+    return null;
   }
 }
