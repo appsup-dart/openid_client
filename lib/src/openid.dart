@@ -190,12 +190,31 @@ class Credential {
     return UserInfo.fromJson(await _get(uri));
   }
 
+  /// Allows clients to notify the authorization server that a previously
+  /// obtained refresh or access token is no longer needed
+  ///
+  /// See https://tools.ietf.org/html/rfc7009
+  Future revoke() async {
+    var uri = client.issuer.metadata.revocationEndpoint;
+    if (uri == null) {
+      throw UnsupportedError('Issuer does not support revocation endpoint.');
+    }
+    var request = _token.refreshToken != null
+        ? {'token': _token.refreshToken, 'token_type_hint': 'refresh_token'}
+        : {'token': _token.accessToken, 'token_type_hint': 'access_token'};
+    await _post(uri, body: request);
+  }
+
   http.Client createHttpClient([http.Client baseClient]) =>
       http.AuthorizedClient(
           baseClient ?? client.httpClient ?? http.Client(), this);
 
   Future _get(uri) async {
     return http.get(uri, client: createHttpClient());
+  }
+
+  Future _post(uri, {dynamic body}) async {
+    return http.post(uri, client: createHttpClient(), body: body);
   }
 
   IdToken get idToken => _token.idToken;
