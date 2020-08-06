@@ -264,6 +264,11 @@ class Credential {
         _token.expiresAt.isAfter(DateTime.now())) {
       return _token;
     }
+    if (_token.accessToken == null &&
+        _token.refreshToken == null &&
+        _token.idToken != null) {
+      return _token;
+    }
 
     var json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
       'grant_type': 'refresh_token',
