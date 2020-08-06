@@ -18,13 +18,23 @@ class Authenticator {
           ..redirectUri = Uri.parse(window.location.href).removeFragment());
 
   void authorize() {
-    logout();
+    _forgetCredentials();
     window.localStorage['openid_client:state'] = flow.state;
     window.location.href = flow.authenticationUri.toString();
   }
 
-  void logout() {
-    Platform.supportsTypedData;
+  void logout() async {
+    _forgetCredentials();
+    var c = await credential;
+    if (c == null) return;
+    var uri = c.generateLogoutUrl(
+        redirectUri: Uri.parse(window.location.href).removeFragment());
+    if (uri != null) {
+      window.location.href = uri.toString();
+    }
+  }
+
+  void _forgetCredentials() {
     window.localStorage.remove('openid_client:state');
     window.localStorage.remove('openid_client:auth');
   }

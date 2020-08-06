@@ -216,7 +216,7 @@ class Credential {
   ///
   /// See https://openid.net/specs/openid-connect-rpinitiated-1_0.html
   Uri generateLogoutUrl({Uri redirectUri, String state}) {
-    return client.issuer.metadata.endSessionEndpoint.replace(queryParameters: {
+    return client.issuer.metadata.endSessionEndpoint?.replace(queryParameters: {
       if (_token?.idToken != null)
         'id_token_hint': _token.idToken.toCompactSerialization(),
       if (redirectUri != null)
