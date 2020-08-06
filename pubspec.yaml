@@ -1,7 +1,6 @@
 name: openid_client
 description: Library for working with OpenID Connect and implementing clients.
 version: 0.3.0
-author: Rik Bellens <rik.bellens@appsup.be>
 homepage: https://github.com/appsup-dart/openid_client
 
 environment:
@@ -9,7 +8,7 @@ environment:
 
 dependencies:
   jose: '>=0.1.2 <0.3.0'
-  pointycastle: ^1.0.0-rc4
+  pointycastle: ^1.0.0
   http: ^0.12.0
   logging: ^0.11.3+2
   args: ^1.5.0
