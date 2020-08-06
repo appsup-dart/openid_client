@@ -348,8 +348,9 @@ class Flow {
   Flow.implicit(Client client, {String state})
       : this._(
             FlowType.implicit,
-            ['token id_token', 'id_token', 'token'].firstWhere((v) =>
-                client.issuer.metadata.responseTypesSupported.contains(v)),
+            ['token id_token', 'id_token token', 'id_token', 'token']
+                .firstWhere((v) =>
+                    client.issuer.metadata.responseTypesSupported.contains(v)),
             client,
             state: state);
 
