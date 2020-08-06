@@ -7,7 +7,7 @@
 - Add optional `forceRefresh` argument to `getTokenResponse`
 - Add `fromJson` and `toJson` to `Credential` 
 - Add `revoke` method to `Credential`
-
+- Add `generateLogoutUrl` method to `Credential`
 
 ## 0.2.5
 

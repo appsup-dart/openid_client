@@ -194,7 +194,7 @@ class Credential {
   /// obtained refresh or access token is no longer needed
   ///
   /// See https://tools.ietf.org/html/rfc7009
-  Future revoke() async {
+  Future<void> revoke() async {
     var uri = client.issuer.metadata.revocationEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support revocation endpoint.');
@@ -203,6 +203,26 @@ class Credential {
         ? {'token': _token.refreshToken, 'token_type_hint': 'refresh_token'}
         : {'token': _token.accessToken, 'token_type_hint': 'access_token'};
     await _post(uri, body: request);
+  }
+
+  /// Returns an url to redirect to for a Relying Party to request that an
+  /// OpenID Provider log out the End-User.
+  ///
+  /// [redirectUri] is an url to which the Relying Party is requesting that the
+  /// End-User's User Agent be redirected after a logout has been performed.
+  ///
+  /// [state] is an opaque value used by the Relying Party to maintain state
+  /// between the logout request and the callback to [redirectUri].
+  ///
+  /// See https://openid.net/specs/openid-connect-rpinitiated-1_0.html
+  Uri generateLogoutUrl({Uri redirectUri, String state}) {
+    return client.issuer.metadata.endSessionEndpoint.replace(queryParameters: {
+      if (_token?.idToken != null)
+        'id_token_hint': _token.idToken.toCompactSerialization(),
+      if (redirectUri != null)
+        'post_logout_redirect_uri': redirectUri.toString(),
+      if (state != null) 'state': state
+    });
   }
 
   http.Client createHttpClient([http.Client baseClient]) =>
