@@ -1,7 +1,9 @@
-import 'package:http/http.dart' as http;
 import 'dart:async';
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../openid_client.dart';
 
@@ -12,7 +14,7 @@ final _logger = Logger('openid_client');
 typedef ClientFactory = http.Client Function();
 
 Future get(dynamic url,
-    {Map<String, String> headers, http.Client client}) async {
+    {Map<String, String> headers, @required http.Client client}) async {
   return _processResponse(
       await _withClient((client) => client.get(url, headers: headers), client));
 }
@@ -21,7 +23,7 @@ Future post(dynamic url,
     {Map<String, String> headers,
     body,
     Encoding encoding,
-    http.Client client}) async {
+    @required http.Client client}) async {
   return _processResponse(await _withClient(
       (client) =>
           client.post(url, headers: headers, body: body, encoding: encoding),

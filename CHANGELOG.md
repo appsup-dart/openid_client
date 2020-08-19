@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.3.1
+
+- Fix not using Client's httpClient for getTokenResponse 
+
 ## 0.3.0
 
 - Add http.Client arguments

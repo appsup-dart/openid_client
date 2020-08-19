@@ -1,14 +1,17 @@
 library openid_client.openid;
 
 import 'dart:async';
-import 'http_util.dart' as http;
 import 'dart:convert';
-import 'package:jose/jose.dart';
 import 'dart:math';
-import 'model.dart';
-export 'model.dart';
 import 'dart:typed_data';
+
+import 'package:jose/jose.dart';
 import 'package:pointycastle/digests/sha256.dart';
+
+import 'http_util.dart' as http;
+import 'model.dart';
+
+export 'model.dart';
 
 /// Represents an OpenId Provider
 class Issuer {
@@ -270,12 +273,14 @@ class Credential {
       return _token;
     }
 
-    var json = await http.post(client.issuer.metadata.tokenEndpoint, body: {
-      'grant_type': 'refresh_token',
-      'refresh_token': _token.refreshToken,
-      'client_id': client.clientId,
-      if (client.clientSecret != null) 'client_secret': client.clientSecret
-    });
+    var json = await http.post(client.issuer.metadata.tokenEndpoint,
+        body: {
+          'grant_type': 'refresh_token',
+          'refresh_token': _token.refreshToken,
+          'client_id': client.clientId,
+          if (client.clientSecret != null) 'client_secret': client.clientSecret
+        },
+        client: client.httpClient);
     if (json['error'] != null) {
       throw OpenIdException(
           json['error'], json['error_description'], json['error_uri']);
