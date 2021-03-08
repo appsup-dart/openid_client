@@ -13,11 +13,11 @@ class Authenticator {
 
   final int port;
 
-  Authenticator(Client/*?*/ client,
+  Authenticator(Client? client,
       {this.port = 3000,
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
-      Uri/*?*/ redirectUri})
+      Uri? redirectUri})
       : flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client)
             : Flow.authorizationCode(client)
@@ -25,13 +25,13 @@ class Authenticator {
           ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 
   Future<Credential> authorize() async {
-    var state = flow.authenticationUri.queryParameters['state'];
+    var state = flow.authenticationUri.queryParameters['state']!;
 
     _requestsByState[state] = Completer();
     await _startServer(port);
     urlLancher(flow.authenticationUri.toString());
 
-    var response = await _requestsByState[state].future;
+    var response = await _requestsByState[state]!.future;
 
     return flow.callback(response);
   }
@@ -39,22 +39,22 @@ class Authenticator {
   /// cancel the ongoing auth flow, i.e. when the user closed the webview/browser without a successful login
   Future<void> cancel() async {
     final state = flow.authenticationUri.queryParameters['state'];
-    _requestsByState[state]?.completeError(Exception('Flow was cancelled'));
-    final server = await _requestServers.remove(port);
-    if (server != null) {
-      await server.close();
-    }
+    _requestsByState[state!]?.completeError(Exception('Flow was cancelled'));
+    final server = await _requestServers.remove(port)!;
+    await server.close();
   }
 
   static final Map<int, Future<HttpServer>> _requestServers = {};
-  static final Map<String/*!*/, Completer<Map<String, String>>> _requestsByState =
+  static final Map<String, Completer<Map<String, String>>> _requestsByState =
       {};
 
   static Future<HttpServer> _startServer(int port) {
     return _requestServers[port] ??=
-        (HttpServer.bind(InternetAddress.loopbackIPv4, port)
+        (HttpServer.bind(InternetAddress.anyIPv4, port)
           ..then((requestServer) async {
+            print('server started $port');
             await for (var request in requestServer) {
+              print('request $request');
               request.response.statusCode = 200;
               request.response.headers.set('Content-type', 'text/html');
               request.response.writeln('<html>'
@@ -65,7 +65,7 @@ class Authenticator {
               var result = request.requestedUri.queryParameters;
 
               if (!result.containsKey('state')) continue;
-              var r = _requestsByState.remove(result['state']);
+              var r = _requestsByState.remove(result['state'])!;
               r.complete(result);
               if (_requestsByState.isEmpty) {
                 for (var s in _requestServers.values) {
@@ -94,6 +94,5 @@ void _runBrowser(String url) {
     default:
       throw UnsupportedError(
           'Unsupported platform: ${Platform.operatingSystem}');
-      break;
   }
 }
