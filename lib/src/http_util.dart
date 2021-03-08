@@ -71,7 +71,7 @@ class AuthorizedClient extends http.BaseClient {
 }
 
 class HttpRequestException implements Exception {
-  final int statusCode;
+  final int/*!*/ statusCode;
 
   final dynamic body;
 

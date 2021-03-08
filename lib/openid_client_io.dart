@@ -13,11 +13,11 @@ class Authenticator {
 
   final int port;
 
-  Authenticator(Client client,
+  Authenticator(Client/*?*/ client,
       {this.port = 3000,
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
-      Uri redirectUri})
+      Uri/*?*/ redirectUri})
       : flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client)
             : Flow.authorizationCode(client)
@@ -47,7 +47,7 @@ class Authenticator {
   }
 
   static final Map<int, Future<HttpServer>> _requestServers = {};
-  static final Map<String, Completer<Map<String, String>>> _requestsByState =
+  static final Map<String/*!*/, Completer<Map<String, String>>> _requestsByState =
       {};
 
   static Future<HttpServer> _startServer(int port) {
