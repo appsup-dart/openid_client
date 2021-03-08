@@ -252,11 +252,15 @@ class Credential {
       yield JoseException('Could not verify token signature');
     }
 
-    yield* Stream.fromIterable(idToken.claims.validate(
-        expiryTolerance: validateExpiry ? const Duration(seconds: 30) : null,
-        issuer: client.issuer.metadata.issuer,
-        clientId: client.clientId,
-        nonce: nonce));
+    yield* Stream.fromIterable(idToken.claims
+        .validate(
+            expiryTolerance: const Duration(seconds: 30),
+            issuer: client.issuer.metadata.issuer,
+            clientId: client.clientId,
+            nonce: nonce)
+        .where((e) =>
+            validateExpiry ||
+            !(e is JoseException && e.message.startsWith('JWT expired.'))));
   }
 
   String get refreshToken => _token.refreshToken;
