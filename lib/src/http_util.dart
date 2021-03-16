@@ -33,8 +33,20 @@ dynamic _processResponse(http.Response response) {
   _logger.fine(
       '${response.request!.method} ${response.request!.url}: ${response.body}');
   if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw HttpRequestException(
-        statusCode: response.statusCode, body: json.decode(response.body));
+    dynamic body = response.body;
+
+    if (response.headers['content-type'] == 'application/json') {
+      try {
+        body = json.decode(response.body);
+      } on FormatException {
+        _logger.warning(
+            'Response\'s header `content-type` is set to `application/json`, '
+            'but the response\'s body is not in a valid JSON format. '
+            'Skipping body deserialization.');
+      }
+    }
+
+    throw HttpRequestException(statusCode: response.statusCode, body: body);
   }
   return json.decode(response.body);
 }
@@ -72,6 +84,10 @@ class AuthorizedClient extends http.BaseClient {
 class HttpRequestException implements Exception {
   final int statusCode;
 
+  /// Contains the body returned as the error response. If possible a JSON body will
+  /// be deserialized in a `dynamic` type, otherwise it will be stored as a `String`.
+  /// The deserialization is possible when the response's header `content-type` is set
+  /// to `application/json` and the body's content it's actually in the JSON format.
   final dynamic body;
 
   HttpRequestException({required this.statusCode, this.body});
