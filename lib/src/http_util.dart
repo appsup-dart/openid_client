@@ -75,4 +75,9 @@ class HttpRequestException implements Exception {
   final dynamic body;
 
   HttpRequestException({required this.statusCode, this.body});
+
+  @override
+  String toString() {
+    return 'HttpRequestException >>> statusCode: $statusCode, body: $body';
+  }
 }
