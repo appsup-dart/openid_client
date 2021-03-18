@@ -48,7 +48,7 @@ class DiscoverIssuerCommand extends CommandWithRestArguments {
   @override
   Future<Issuer> run() async {
     checkRestArguments();
-    var issuer = await (Issuer.discover(uri) as FutureOr<Issuer>);
+    var issuer = await Issuer.discover(uri);
     print(toJson(issuer.metadata));
     Map issuers = _configOptions!['issuers'] ??= {};
     if (!issuers.containsKey(uri.toString())) {
@@ -114,9 +114,6 @@ class ConfigureClientCommand extends CommandWithRestArguments {
         (v) => v['issuer'] == issuer.toString() && v['client_id'] == clientId,
         orElse: () => null);
     if (client == null) {
-      if (await Issuer.discover(issuer) == null) {
-        return null;
-      }
       client = {'issuer': issuer.toString(), 'client_id': clientId};
       clients.add(client);
     }

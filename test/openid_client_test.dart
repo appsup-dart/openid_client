@@ -27,7 +27,7 @@ void main() {
     });
 
     test('Facebook', () async {
-      var issuer = await (Issuer.discover(Issuer.facebook) as FutureOr<Issuer>);
+      var issuer = await Issuer.discover(Issuer.facebook);
       expect(issuer.metadata.issuer, Issuer.facebook);
     });
   });
