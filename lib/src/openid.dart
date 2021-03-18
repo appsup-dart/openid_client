@@ -24,7 +24,9 @@ class Issuer {
 
   /// Creates an issuer from its metadata.
   Issuer(this.metadata, {this.claimsMap = const {}})
-      : _keyStore = JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri);
+      : _keyStore = metadata.jwksUri == null
+            ? JsonWebKeyStore()
+            : (JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri!));
 
   /// Url of the facebook issuer.
   ///
@@ -245,8 +247,11 @@ class Credential {
 
   Stream<Exception> validateToken(
       {bool validateClaims = true, bool validateExpiry = true}) async* {
-    var keyStore = JsonWebKeyStore()
-      ..addKeySetUrl(client!.issuer!.metadata.jwksUri);
+    var keyStore = JsonWebKeyStore();
+    var jwksUri = client!.issuer!.metadata.jwksUri;
+    if (jwksUri != null) {
+      keyStore.addKeySetUrl(jwksUri);
+    }
     if (!await idToken.verify(keyStore,
         allowedArguments:
             client!.issuer!.metadata.idTokenSigningAlgValuesSupported)) {
