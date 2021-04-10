@@ -146,7 +146,7 @@ class Client {
   static Future<Client> forIdToken(String idToken,
       {http.Client? httpClient}) async {
     var token = JsonWebToken.unverified(idToken);
-    var claims = OpenIdClaims.fromJson(token.claims.toJson()!);
+    var claims = OpenIdClaims.fromJson(token.claims.toJson());
     var issuer = await Issuer.discover(claims.issuer, httpClient: httpClient);
     if (!await token.verify(issuer._keyStore)) {
       throw ArgumentError('Unable to verify token');
