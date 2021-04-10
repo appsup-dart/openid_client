@@ -191,8 +191,7 @@ class Credential {
     if (uri == null) {
       throw UnsupportedError('Issuer does not support userinfo endpoint.');
     }
-    return UserInfo.fromJson(
-        await (_get(uri) as FutureOr<Map<String, dynamic>>));
+    return UserInfo.fromJson(await _get(uri));
   }
 
   /// Allows clients to notify the authorization server that a previously

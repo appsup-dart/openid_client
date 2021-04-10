@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- Bugfixes
+
 ## 0.4.0
 
 - Null safety

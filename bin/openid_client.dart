@@ -250,13 +250,13 @@ class ValidateTokenCommand extends CommandWithRestArguments {
       return null;
     }
 
-    var client = await (runner.run([
+    var client = await runner.run([
       'clients',
       'configure',
       issuer.toString(),
       clientId,
       if (secret != null) ...['--secret', secret!]
-    ]) as FutureOr<Client>);
+    ]);
 
     var c = client.createCredential(idToken: token);
 
