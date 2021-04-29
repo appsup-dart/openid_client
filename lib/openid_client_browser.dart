@@ -5,15 +5,16 @@ import 'dart:convert';
 export 'openid_client.dart';
 
 class Authenticator {
+  static String? storedState() => window.localStorage['openid_client:state'];
+
   final Flow flow;
 
   final Future<Credential?> credential;
 
-  Authenticator._(this.flow) : credential = _credentialFromUri(flow);
+  Authenticator.flow(this.flow) : credential = _credentialFromUri(flow);
 
   Authenticator(Client client, {Iterable<String> scopes = const []})
-      : this._(Flow.implicit(client,
-            state: window.localStorage['openid_client:state'])
+      : this.flow(Flow.implicit(client, state: storedState())
           ..scopes.addAll(scopes)
           ..redirectUri = Uri.parse(window.location.href).removeFragment());
 

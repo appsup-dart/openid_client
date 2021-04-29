@@ -24,6 +24,12 @@ class Authenticator {
           ..scopes.addAll(scopes)
           ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 
+  Authenticator.flow(
+    this.flow, {
+    this.urlLancher = _runBrowser,
+    this.port = 3000,
+  });
+
   Future<Credential> authorize() async {
     var state = flow.authenticationUri.queryParameters['state']!;
 
