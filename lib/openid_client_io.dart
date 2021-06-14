@@ -65,18 +65,25 @@ class Authenticator {
               var result = request.requestedUri.queryParameters;
 
               if (!result.containsKey('state')) continue;
-              var r = _requestsByState.remove(result['state'])!;
-              r.complete(result);
-              if (_requestsByState.isEmpty) {
-                for (var s in _requestServers.values) {
-                  await (await s).close();
-                }
-                _requestServers.clear();
-              }
+              await processResult(result);
             }
 
             await _requestServers.remove(port);
           }));
+  }
+
+
+  /// Process the Result from a auth Request
+  /// You can call this manually if you are redirected to the app by an external browser
+  static Future<void> processResult(Map<String, String> result) async {
+    var r = _requestsByState.remove(result['state'])!;
+    r.complete(result);
+    if (_requestsByState.isEmpty) {
+      for (var s in _requestServers.values) {
+        await (await s).close();
+      }
+      _requestServers.clear();
+    }
   }
 }
 
