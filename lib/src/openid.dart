@@ -24,7 +24,9 @@ class Issuer {
 
   /// Creates an issuer from its metadata.
   Issuer(this.metadata, {this.claimsMap = const {}})
-      : _keyStore = JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri);
+      : _keyStore = metadata.jwksUri == null
+            ? JsonWebKeyStore()
+            : (JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri!));
 
   /// Url of the facebook issuer.
   ///
@@ -48,7 +50,7 @@ class Issuer {
   static Uri firebase(String id) =>
       Uri.parse('https://securetoken.google.com/$id');
 
-  static final Map<Uri, Issuer> _discoveries = {
+  static final Map<Uri, Issuer?> _discoveries = {
     facebook: Issuer(OpenIdProviderMetadata.fromJson({
       'issuer': facebook.toString(),
       'authorization_endpoint': 'https://www.facebook.com/v2.8/dialog/oauth',
@@ -111,8 +113,8 @@ class Issuer {
   static Iterable<Uri> get knownIssuers => _discoveries.keys;
 
   /// Discovers the OpenId Provider's metadata based on its uri.
-  static Future<Issuer> discover(Uri uri, {http.Client httpClient}) async {
-    if (_discoveries[uri] != null) return _discoveries[uri];
+  static Future<Issuer> discover(Uri uri, {http.Client? httpClient}) async {
+    if (_discoveries[uri] != null) return _discoveries[uri]!;
 
     var segments = uri.pathSegments.toList();
     if (segments.isNotEmpty && segments.last.isEmpty) {
@@ -129,23 +131,22 @@ class Issuer {
 /// Represents the client application.
 class Client {
   /// The id of the client.
-  final String clientId;
+  final String? clientId;
 
   /// A secret for authenticating the client to the OP.
-  final String clientSecret;
+  final String? clientSecret;
 
   /// The [Issuer] representing the OP.
-  final Issuer issuer;
+  final Issuer? issuer;
 
-  final http.Client httpClient;
+  final http.Client? httpClient;
 
   Client(this.issuer, this.clientId, {this.clientSecret, this.httpClient});
 
   static Future<Client> forIdToken(String idToken,
-      {http.Client httpClient}) async {
+      {http.Client? httpClient}) async {
     var token = JsonWebToken.unverified(idToken);
     var claims = OpenIdClaims.fromJson(token.claims.toJson());
-    if (claims.issuer == null) throw ArgumentError('Token has no issuer.');
     var issuer = await Issuer.discover(claims.issuer, httpClient: httpClient);
     if (!await token.verify(issuer._keyStore)) {
       throw ArgumentError('Unable to verify token');
@@ -156,12 +157,12 @@ class Client {
 
   /// Creates a [Credential] for this client.
   Credential createCredential(
-          {String accessToken,
-          String tokenType,
-          String refreshToken,
-          Duration expiresIn,
-          DateTime expiresAt,
-          String idToken}) =>
+          {String? accessToken,
+          String? tokenType,
+          String? refreshToken,
+          Duration? expiresIn,
+          DateTime? expiresAt,
+          String? idToken}) =>
       Credential._(
           this,
           TokenResponse.fromJson({
@@ -169,7 +170,7 @@ class Client {
             'token_type': tokenType,
             'refresh_token': refreshToken,
             'id_token': idToken,
-            if (expiresIn != null) 'expires_in': expiresIn?.inSeconds,
+            if (expiresIn != null) 'expires_in': expiresIn.inSeconds,
             if (expiresAt != null)
               'expires_at': expiresAt.millisecondsSinceEpoch ~/ 1000
           }),
@@ -178,15 +179,15 @@ class Client {
 
 class Credential {
   TokenResponse _token;
-  final Client client;
-  final String nonce;
+  final Client? client;
+  final String? nonce;
 
   Credential._(this.client, this._token, this.nonce);
 
-  Map<String, dynamic> get response => _token.toJson();
+  Map<String, dynamic>? get response => _token.toJson();
 
   Future<UserInfo> getUserInfo() async {
-    var uri = client.issuer.metadata.userinfoEndpoint;
+    var uri = client!.issuer!.metadata.userinfoEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support userinfo endpoint.');
     }
@@ -198,7 +199,7 @@ class Credential {
   ///
   /// See https://tools.ietf.org/html/rfc7009
   Future<void> revoke() async {
-    var uri = client.issuer.metadata.revocationEndpoint;
+    var uri = client!.issuer!.metadata.revocationEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support revocation endpoint.');
     }
@@ -218,19 +219,19 @@ class Credential {
   /// between the logout request and the callback to [redirectUri].
   ///
   /// See https://openid.net/specs/openid-connect-rpinitiated-1_0.html
-  Uri generateLogoutUrl({Uri redirectUri, String state}) {
-    return client.issuer.metadata.endSessionEndpoint?.replace(queryParameters: {
-      if (_token?.idToken != null)
-        'id_token_hint': _token.idToken.toCompactSerialization(),
+  Uri? generateLogoutUrl({Uri? redirectUri, String? state}) {
+    return client!.issuer!.metadata.endSessionEndpoint
+        ?.replace(queryParameters: {
+      'id_token_hint': _token.idToken.toCompactSerialization(),
       if (redirectUri != null)
         'post_logout_redirect_uri': redirectUri.toString(),
       if (state != null) 'state': state
     });
   }
 
-  http.Client createHttpClient([http.Client baseClient]) =>
+  http.Client createHttpClient([http.Client? baseClient]) =>
       http.AuthorizedClient(
-          baseClient ?? client.httpClient ?? http.Client(), this);
+          baseClient ?? client!.httpClient ?? http.Client(), this);
 
   Future _get(uri) async {
     return http.get(uri, client: createHttpClient());
@@ -244,43 +245,49 @@ class Credential {
 
   Stream<Exception> validateToken(
       {bool validateClaims = true, bool validateExpiry = true}) async* {
-    var keyStore = JsonWebKeyStore()
-      ..addKeySetUrl(client.issuer.metadata.jwksUri);
+    var keyStore = JsonWebKeyStore();
+    var jwksUri = client!.issuer!.metadata.jwksUri;
+    if (jwksUri != null) {
+      keyStore.addKeySetUrl(jwksUri);
+    }
     if (!await idToken.verify(keyStore,
         allowedArguments:
-            client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
+            client!.issuer!.metadata.idTokenSigningAlgValuesSupported)) {
       yield JoseException('Could not verify token signature');
     }
 
-    yield* Stream.fromIterable(idToken.claims.validate(
-        expiryTolerance: validateExpiry ? const Duration(seconds: 30) : null,
-        issuer: client.issuer.metadata.issuer,
-        clientId: client.clientId,
-        nonce: nonce));
+    yield* Stream.fromIterable(idToken.claims
+        .validate(
+            expiryTolerance: const Duration(seconds: 30),
+            issuer: client!.issuer!.metadata.issuer,
+            clientId: client!.clientId,
+            nonce: nonce)
+        .where((e) =>
+            validateExpiry ||
+            !(e is JoseException && e.message.startsWith('JWT expired.'))));
   }
 
-  String get refreshToken => _token.refreshToken;
+  String? get refreshToken => _token.refreshToken;
 
   Future<TokenResponse> getTokenResponse([bool forceRefresh = false]) async {
     if (!forceRefresh &&
         _token.accessToken != null &&
-        _token.expiresAt.isAfter(DateTime.now())) {
+        _token.expiresAt!.isAfter(DateTime.now())) {
       return _token;
     }
-    if (_token.accessToken == null &&
-        _token.refreshToken == null &&
-        _token.idToken != null) {
+    if (_token.accessToken == null && _token.refreshToken == null) {
       return _token;
     }
 
-    var json = await http.post(client.issuer.metadata.tokenEndpoint,
+    var json = await http.post(client!.issuer!.metadata.tokenEndpoint,
         body: {
           'grant_type': 'refresh_token',
           'refresh_token': _token.refreshToken,
-          'client_id': client.clientId,
-          if (client.clientSecret != null) 'client_secret': client.clientSecret
+          'client_id': client!.clientId,
+          if (client!.clientSecret != null)
+            'client_secret': client!.clientSecret
         },
-        client: client.httpClient);
+        client: client!.httpClient);
     if (json['error'] != null) {
       throw OpenIdException(
           json['error'], json['error_description'], json['error_uri']);
@@ -289,7 +296,7 @@ class Credential {
     return _token = TokenResponse.fromJson(json);
   }
 
-  Credential.fromJson(Map<String, dynamic> json, {http.Client httpClient})
+  Credential.fromJson(Map<String, dynamic> json, {http.Client? httpClient})
       : this._(
             Client(
                 Issuer(OpenIdProviderMetadata.fromJson(
@@ -301,9 +308,9 @@ class Credential {
             json['nonce']);
 
   Map<String, dynamic> toJson() => {
-        'issuer': client.issuer.metadata.toJson(),
-        'client_id': client.clientId,
-        'client_secret': client.clientSecret,
+        'issuer': client!.issuer!.metadata.toJson(),
+        'client_id': client!.clientId,
+        'client_secret': client!.clientSecret,
         'token': _token.toJson(),
         'nonce': nonce
       };
@@ -319,9 +326,9 @@ enum FlowType {
 class Flow {
   final FlowType type;
 
-  final String responseType;
+  final String? responseType;
 
-  final Client client;
+  final Client? client;
 
   final List<String> scopes = [];
 
@@ -329,11 +336,11 @@ class Flow {
 
   Uri redirectUri = Uri.parse('http://localhost');
 
-  Flow._(this.type, this.responseType, this.client, {String state})
+  Flow._(this.type, this.responseType, this.client, {String? state})
       : state = state ?? _randomString(20) {
-    var scopes = client.issuer.metadata.scopesSupported;
+    var scopes = client!.issuer!.metadata.scopesSupported;
     for (var s in const ['openid', 'profile', 'email']) {
-      if (scopes.contains(s)) {
+      if (scopes!.contains(s)) {
         this.scopes.add(s);
         break;
       }
@@ -349,39 +356,39 @@ class Flow {
     };
   }
 
-  Flow.authorizationCode(Client client, {String state})
+  Flow.authorizationCode(Client? client, {String? state})
       : this._(FlowType.authorizationCode, 'code', client, state: state);
 
-  Flow.authorizationCodeWithPKCE(Client client, {String state})
+  Flow.authorizationCodeWithPKCE(Client? client, {String? state})
       : this._(FlowType.proofKeyForCodeExchange, 'code', client, state: state);
 
-  Flow.implicit(Client client, {String state})
+  Flow.implicit(Client client, {String? state})
       : this._(
             FlowType.implicit,
             ['token id_token', 'id_token token', 'id_token', 'token']
                 .firstWhere((v) =>
-                    client.issuer.metadata.responseTypesSupported.contains(v)),
+                    client.issuer!.metadata.responseTypesSupported.contains(v)),
             client,
             state: state);
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
 
-  Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
+  Uri get authenticationUri => client!.issuer!.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
 
-  Map<String, String> _proofKeyForCodeExchange;
+  late Map<String, String> _proofKeyForCodeExchange;
 
   final String _nonce = _randomString(16);
 
-  Map<String, String> get _authenticationUriParameters {
+  Map<String, String?> get _authenticationUriParameters {
     var v = {
       'response_type': responseType,
       'scope': scopes.join(' '),
-      'client_id': client.clientId,
+      'client_id': client!.clientId,
       'redirect_uri': redirectUri.toString(),
       'state': state
     }..addAll(
-        responseType.split(' ').contains('id_token') ? {'nonce': _nonce} : {});
+        responseType!.split(' ').contains('id_token') ? {'nonce': _nonce} : {});
 
     if (type == FlowType.proofKeyForCodeExchange) {
       v.addAll({
@@ -392,49 +399,49 @@ class Flow {
     return v;
   }
 
-  Future<TokenResponse> _getToken(String code) async {
-    var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
+  Future<TokenResponse> _getToken(String? code) async {
+    var methods = client!.issuer!.metadata.tokenEndpointAuthMethodsSupported;
     var json;
     if (type == FlowType.jwtBearer) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
           body: {
             'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion': code,
           },
-          client: client.httpClient);
+          client: client!.httpClient);
     } else if (type == FlowType.proofKeyForCodeExchange) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirectUri.toString(),
-            'client_id': client.clientId,
-            if (client.clientSecret != null)
-              'client_secret': client.clientSecret,
+            'client_id': client!.clientId,
+            if (client!.clientSecret != null)
+              'client_secret': client!.clientSecret,
             'code_verifier': _proofKeyForCodeExchange['code_verifier']
           },
-          client: client.httpClient);
-    } else if (methods.contains('client_secret_post')) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+          client: client!.httpClient);
+    } else if (methods!.contains('client_secret_post')) {
+      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirectUri.toString(),
-            'client_id': client.clientId,
-            'client_secret': client.clientSecret
+            'client_id': client!.clientId,
+            'client_secret': client!.clientSecret
           },
-          client: client.httpClient);
+          client: client!.httpClient);
     } else if (methods.contains('client_secret_basic')) {
-      var h =
-          base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      var h = base64
+          .encode('${client!.clientId}:${client!.clientSecret}'.codeUnits);
+      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
           headers: {'authorization': 'Basic $h'},
           body: {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirectUri.toString()
           },
-          client: client.httpClient);
+          client: client!.httpClient);
     } else {
       throw UnsupportedError('Unknown auth methods: $methods');
     }
@@ -454,7 +461,7 @@ class Flow {
       return Credential._(client, await _getToken(code), null);
     } else if (response.containsKey('code') &&
         (type == FlowType.proofKeyForCodeExchange ||
-            client.clientSecret != null)) {
+            client!.clientSecret != null)) {
       var code = response['code'];
       return Credential._(client, await _getToken(code), null);
     } else if (response.containsKey('access_token') ||
@@ -474,15 +481,15 @@ String _randomString(int length) {
 
 class OpenIdException implements Exception {
   /// An error code
-  final String code;
+  final String? code;
 
   /// Human-readable text description of the error.
-  final String message;
+  final String? message;
 
   /// A URI identifying a human-readable web page with information about the
   /// error, used to provide the client developer with additional information
   /// about the error.
-  final String uri;
+  final String? uri;
 
   static const _defaultMessages = {
     'duplicate_requests':
@@ -533,8 +540,8 @@ class OpenIdException implements Exception {
         'The value of one of the Client Metadata fields is invalid and the server has rejected this request. Note that an Authorization Server MAY choose to substitute a valid value for any requested parameter of a Client\'s Metadata.',
   };
 
-  OpenIdException(this.code, String message, [this.uri])
-      : message = message ?? _defaultMessages[code];
+  OpenIdException(this.code, String? message, [this.uri])
+      : message = message ?? _defaultMessages[code!];
 
   @override
   String toString() => 'OpenIdException($code): $message';

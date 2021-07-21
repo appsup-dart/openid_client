@@ -7,7 +7,7 @@ export 'openid_client.dart';
 class Authenticator {
   final Flow flow;
 
-  final Future<Credential> credential;
+  final Future<Credential?> credential;
 
   Authenticator._(this.flow) : credential = _credentialFromUri(flow);
 
@@ -39,10 +39,10 @@ class Authenticator {
     window.localStorage.remove('openid_client:auth');
   }
 
-  static Future<Credential> _credentialFromUri(Flow flow) async {
-    Map q;
+  static Future<Credential?> _credentialFromUri(Flow flow) async {
+    Map? q;
     if (window.localStorage.containsKey('openid_client:auth')) {
-      q = json.decode(window.localStorage['openid_client:auth']);
+      q = json.decode(window.localStorage['openid_client:auth']!);
     } else {
       var uri = Uri(query: Uri.parse(window.location.href).fragment);
       q = uri.queryParameters;
@@ -54,7 +54,7 @@ class Authenticator {
             Uri.parse(window.location.href).removeFragment().toString();
       }
     }
-    if (q.containsKey('access_token') ||
+    if (q!.containsKey('access_token') ||
         q.containsKey('code') ||
         q.containsKey('id_token')) {
       return await flow.callback(q.cast());

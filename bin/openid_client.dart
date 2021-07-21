@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:openid_client/openid_client_io.dart';
 import 'package:args/command_runner.dart';
 import 'dart:convert';
@@ -23,7 +25,7 @@ class ListIssuersCommand extends Command {
 
   @override
   void run() async {
-    var issuers = (_configOptions['issuers'] ?? {}).keys.toSet()
+    var issuers = (_configOptions!['issuers'] ?? {}).keys.toSet()
       ..addAll(Issuer.knownIssuers.map((v) => v.toString()));
 
     issuers.forEach(print);
@@ -37,10 +39,10 @@ class DiscoverIssuerCommand extends CommandWithRestArguments {
   final description =
       'Discovers the metadata of an issuer and adds it to the list of known issuers';
 
-  Uri get uri => Uri.parse(argResults.rest[0]);
+  Uri get uri => Uri.parse(argResults!.rest[0]);
 
   DiscoverIssuerCommand() {
-    restArguments..add('issuer_url');
+    restArguments.add('issuer_url');
   }
 
   @override
@@ -48,7 +50,7 @@ class DiscoverIssuerCommand extends CommandWithRestArguments {
     checkRestArguments();
     var issuer = await Issuer.discover(uri);
     print(toJson(issuer.metadata));
-    Map issuers = _configOptions['issuers'] ??= {};
+    Map issuers = _configOptions!['issuers'] ??= {};
     if (!issuers.containsKey(uri.toString())) {
       issuers[uri.toString()] = {};
       _saveConfig();
@@ -79,7 +81,7 @@ class ListClientsCommand extends Command {
 
   @override
   void run() async {
-    List clients = _configOptions['clients'] ??= [];
+    List clients = _configOptions!['clients'] ??= [];
 
     clients
         .map((c) => '${c['issuer']}\t${c['client_id']}\t${c['client_secret']}')
@@ -94,27 +96,24 @@ class ConfigureClientCommand extends CommandWithRestArguments {
   final description = 'Configure a client';
 
   ConfigureClientCommand() {
-    restArguments..addAll(['issuer_url', 'client_id']);
+    restArguments.addAll(['issuer_url', 'client_id']);
     argParser.addOption('secret', help: 'the client secret');
   }
 
-  Uri get issuer => Uri.parse(argResults.rest[0]);
+  Uri get issuer => Uri.parse(argResults!.rest[0]);
 
-  String get clientId => argResults.rest[1];
+  String get clientId => argResults!.rest[1];
 
-  String get secret => argResults['secret'];
+  String? get secret => argResults!['secret'];
 
   @override
-  Future<Client> run() async {
+  Future<Client?> run() async {
     checkRestArguments();
-    List clients = _configOptions['clients'] ??= [];
+    List clients = _configOptions!['clients'] ??= [];
     var client = clients.firstWhere(
         (v) => v['issuer'] == issuer.toString() && v['client_id'] == clientId,
         orElse: () => null);
     if (client == null) {
-      if (await Issuer.discover(issuer) == null) {
-        return null;
-      }
       client = {'issuer': issuer.toString(), 'client_id': clientId};
       clients.add(client);
     }
@@ -140,17 +139,17 @@ class RemoveClientCommand extends CommandWithRestArguments {
   final description = 'Remove a configured client';
 
   RemoveClientCommand() {
-    restArguments..addAll(['issuer_url', 'client_id']);
+    restArguments.addAll(['issuer_url', 'client_id']);
   }
 
-  Uri get issuer => Uri.parse(argResults.rest[0]);
+  Uri get issuer => Uri.parse(argResults!.rest[0]);
 
-  String get clientId => argResults.rest[1];
+  String get clientId => argResults!.rest[1];
 
   @override
   void run() async {
     checkRestArguments();
-    List clients = _configOptions['clients'] ??= [];
+    List clients = _configOptions!['clients'] ??= [];
     var client = clients.firstWhere(
         (v) => v['issuer'] == issuer.toString() && v['client_id'] == clientId,
         orElse: () => null);
@@ -165,17 +164,17 @@ class AuthClientCommand extends CommandWithRestArguments {
   @override
   final description = 'Authenticate with a client';
 
-  Uri get issuer => Uri.parse(argResults.rest[0]);
+  Uri get issuer => Uri.parse(argResults!.rest[0]);
 
-  String get clientId => argResults.rest[1];
+  String get clientId => argResults!.rest[1];
 
-  String get secret => argResults['secret'];
-  int get port => int.parse(argResults['port']);
+  String? get secret => argResults!['secret'];
+  int get port => int.parse(argResults!['port']);
 
-  Iterable<String> get scopes => argResults['scopes'];
+  Iterable<String> get scopes => argResults!['scopes'] ?? const [];
 
   AuthClientCommand() {
-    restArguments..addAll(['issuer_url', 'client_id']);
+    restArguments.addAll(['issuer_url', 'client_id']);
     argParser.addOption('secret', help: 'the client secret');
     argParser.addOption('port',
         defaultsTo: '3000', help: 'port var redirect uri');
@@ -190,7 +189,7 @@ class AuthClientCommand extends CommandWithRestArguments {
       'configure',
       issuer.toString(),
       clientId,
-      if (secret != null) ...['--secret', secret]
+      if (secret != null) ...['--secret', secret!]
     ]);
     var a = Authenticator(client, port: port, scopes: scopes);
     var c = await a.authorize();
@@ -223,20 +222,20 @@ class ValidateTokenCommand extends CommandWithRestArguments {
       ..addOption('client-id', help: 'the client id')
       ..addOption('secret', help: 'the client secret');
   }
-  String get token => argResults.rest[0];
+  String get token => argResults!.rest[0];
 
-  String get issuer => argResults['issuer'];
-  String get clientId => argResults['client-id'];
-  String get secret => argResults['secret'];
+  String? get issuer => argResults!['issuer'];
+  String? get clientId => argResults!['client-id'];
+  String? get secret => argResults!['secret'];
 
   @override
   void run() async {
-    Uri issuer;
-    String clientId;
+    Uri? issuer;
+    String? clientId;
     try {
       var client = await Client.forIdToken(token);
-      issuer = client.issuer.metadata.issuer;
-      if (this.issuer != null) issuer = Uri.parse(this.issuer);
+      issuer = client.issuer!.metadata.issuer;
+      if (this.issuer != null) issuer = Uri.parse(this.issuer!);
       clientId = this.clientId ?? client.clientId;
     } catch (e) {
       // ignore
@@ -251,15 +250,15 @@ class ValidateTokenCommand extends CommandWithRestArguments {
       return null;
     }
 
-    Client client = await runner.run([
+    var client = await runner.run([
       'clients',
       'configure',
       issuer.toString(),
       clientId,
-      if (secret != null) ...['--secret', secret]
+      if (secret != null) ...['--secret', secret!]
     ]);
 
-    var c = await client.createCredential(idToken: token);
+    var c = client.createCredential(idToken: token);
 
     print(toJson(c.idToken.claims));
     var violations = await c.validateToken().toList();
@@ -267,7 +266,7 @@ class ValidateTokenCommand extends CommandWithRestArguments {
       print('');
       stderr.writeln('Token is not valid, because of these violations: ');
       for (var f in violations) {
-        stderr.writeln('\t${f}');
+        stderr.writeln('\t$f');
       }
     } else {
       print('Token is valid');
@@ -291,7 +290,7 @@ abstract class CommandWithRestArguments<T> extends Command<T> {
   }
 
   void checkRestArguments() {
-    if (argResults.rest.length != restArguments.length) {
+    if (argResults!.rest.length != restArguments.length) {
       usageException('Missing arguments');
     }
   }
@@ -308,7 +307,7 @@ File get _configFile {
       .join(Platform.pathSeparator));
 }
 
-final Map<String, dynamic> _configOptions = () {
+final Map<String, dynamic>? _configOptions = () {
   var f = _configFile;
   if (f.existsSync()) {
     return json.decode(f.readAsStringSync());

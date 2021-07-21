@@ -3,7 +3,6 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 
 import '../openid_client.dart';
 
@@ -14,16 +13,16 @@ final _logger = Logger('openid_client');
 typedef ClientFactory = http.Client Function();
 
 Future get(dynamic url,
-    {Map<String, String> headers, @required http.Client client}) async {
+    {Map<String, String>? headers, required http.Client? client}) async {
   return _processResponse(
       await _withClient((client) => client.get(url, headers: headers), client));
 }
 
 Future post(dynamic url,
-    {Map<String, String> headers,
+    {Map<String, String>? headers,
     body,
-    Encoding encoding,
-    @required http.Client client}) async {
+    Encoding? encoding,
+    required http.Client? client}) async {
   return _processResponse(await _withClient(
       (client) =>
           client.post(url, headers: headers, body: body, encoding: encoding),
@@ -32,7 +31,7 @@ Future post(dynamic url,
 
 dynamic _processResponse(http.Response response) {
   _logger.fine(
-      '${response.request.method} ${response.request.url}: ${response.body}');
+      '${response.request!.method} ${response.request!.url}: ${response.body}');
   if (response.statusCode < 200 || response.statusCode >= 300) {
     throw HttpRequestException(
         statusCode: response.statusCode, body: json.decode(response.body));
@@ -41,7 +40,7 @@ dynamic _processResponse(http.Response response) {
 }
 
 Future<T> _withClient<T>(Future<T> Function(http.Client client) fn,
-    [http.Client client0]) async {
+    [http.Client? client0]) async {
   var client = client0 ?? http.Client();
   try {
     return await fn(client);
@@ -60,7 +59,7 @@ class AuthorizedClient extends http.BaseClient {
   @override
   Future<http.StreamedResponse> send(http.BaseRequest request) async {
     var token = await credential.getTokenResponse();
-    if (token.tokenType != null && token.tokenType.toLowerCase() != 'bearer') {
+    if (token.tokenType != null && token.tokenType!.toLowerCase() != 'bearer') {
       throw UnsupportedError('Unknown token type: ${token.tokenType}');
     }
 
@@ -75,5 +74,5 @@ class HttpRequestException implements Exception {
 
   final dynamic body;
 
-  HttpRequestException({this.statusCode, this.body});
+  HttpRequestException({required this.statusCode, this.body});
 }

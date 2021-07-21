@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.1
+
+- Bugfixes
+
+## 0.4.0
+
+- Null safety
+
 ## 0.3.1
 
 - Fix not using Client's httpClient for getTokenResponse 
