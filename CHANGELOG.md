@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2
+
+- `client` in `Flow`, `issuer` and `clientId` in `Client` and `client` in `Credential` are now non-nullable
+
 ## 0.4.1
 
 - Bugfixes
