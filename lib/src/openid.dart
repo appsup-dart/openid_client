@@ -179,7 +179,7 @@ class Client {
 
 class Credential {
   TokenResponse _token;
-  final Client? client;
+  final Client client;
   final String? nonce;
 
   Credential._(this.client, this._token, this.nonce);
@@ -187,7 +187,7 @@ class Credential {
   Map<String, dynamic>? get response => _token.toJson();
 
   Future<UserInfo> getUserInfo() async {
-    var uri = client!.issuer.metadata.userinfoEndpoint;
+    var uri = client.issuer.metadata.userinfoEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support userinfo endpoint.');
     }
@@ -199,7 +199,7 @@ class Credential {
   ///
   /// See https://tools.ietf.org/html/rfc7009
   Future<void> revoke() async {
-    var uri = client!.issuer.metadata.revocationEndpoint;
+    var uri = client.issuer.metadata.revocationEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support revocation endpoint.');
     }
@@ -220,8 +220,7 @@ class Credential {
   ///
   /// See https://openid.net/specs/openid-connect-rpinitiated-1_0.html
   Uri? generateLogoutUrl({Uri? redirectUri, String? state}) {
-    return client!.issuer.metadata.endSessionEndpoint
-        ?.replace(queryParameters: {
+    return client.issuer.metadata.endSessionEndpoint?.replace(queryParameters: {
       'id_token_hint': _token.idToken.toCompactSerialization(),
       if (redirectUri != null)
         'post_logout_redirect_uri': redirectUri.toString(),
@@ -231,7 +230,7 @@ class Credential {
 
   http.Client createHttpClient([http.Client? baseClient]) =>
       http.AuthorizedClient(
-          baseClient ?? client!.httpClient ?? http.Client(), this);
+          baseClient ?? client.httpClient ?? http.Client(), this);
 
   Future _get(uri) async {
     return http.get(uri, client: createHttpClient());
@@ -246,21 +245,21 @@ class Credential {
   Stream<Exception> validateToken(
       {bool validateClaims = true, bool validateExpiry = true}) async* {
     var keyStore = JsonWebKeyStore();
-    var jwksUri = client!.issuer.metadata.jwksUri;
+    var jwksUri = client.issuer.metadata.jwksUri;
     if (jwksUri != null) {
       keyStore.addKeySetUrl(jwksUri);
     }
     if (!await idToken.verify(keyStore,
         allowedArguments:
-            client!.issuer.metadata.idTokenSigningAlgValuesSupported)) {
+            client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
       yield JoseException('Could not verify token signature');
     }
 
     yield* Stream.fromIterable(idToken.claims
         .validate(
             expiryTolerance: const Duration(seconds: 30),
-            issuer: client!.issuer.metadata.issuer,
-            clientId: client!.clientId,
+            issuer: client.issuer.metadata.issuer,
+            clientId: client.clientId,
             nonce: nonce)
         .where((e) =>
             validateExpiry ||
@@ -279,15 +278,14 @@ class Credential {
       return _token;
     }
 
-    var json = await http.post(client!.issuer.metadata.tokenEndpoint,
+    var json = await http.post(client.issuer.metadata.tokenEndpoint,
         body: {
           'grant_type': 'refresh_token',
           'refresh_token': _token.refreshToken,
-          'client_id': client!.clientId,
-          if (client!.clientSecret != null)
-            'client_secret': client!.clientSecret
+          'client_id': client.clientId,
+          if (client.clientSecret != null) 'client_secret': client.clientSecret
         },
-        client: client!.httpClient);
+        client: client.httpClient);
     if (json['error'] != null) {
       throw OpenIdException(
           json['error'], json['error_description'], json['error_uri']);
@@ -308,9 +306,9 @@ class Credential {
             json['nonce']);
 
   Map<String, dynamic> toJson() => {
-        'issuer': client!.issuer.metadata.toJson(),
-        'client_id': client!.clientId,
-        'client_secret': client!.clientSecret,
+        'issuer': client.issuer.metadata.toJson(),
+        'client_id': client.clientId,
+        'client_secret': client.clientSecret,
         'token': _token.toJson(),
         'nonce': nonce
       };
