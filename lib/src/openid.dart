@@ -338,9 +338,9 @@ class Flow {
 
   Flow._(this.type, this.responseType, this.client, {String? state})
       : state = state ?? _randomString(20) {
-    var scopes = client!.issuer!.metadata.scopesSupported;
+    var scopes = client!.issuer!.metadata.scopesSupported ?? [];
     for (var s in const ['openid', 'profile', 'email']) {
-      if (scopes!.contains(s)) {
+      if (scopes.contains(s)) {
         this.scopes.add(s);
         break;
       }
