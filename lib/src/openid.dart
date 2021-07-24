@@ -328,7 +328,7 @@ class Flow {
 
   final String? responseType;
 
-  final Client? client;
+  final Client client;
 
   final List<String> scopes = [];
 
@@ -338,7 +338,7 @@ class Flow {
 
   Flow._(this.type, this.responseType, this.client, {String? state})
       : state = state ?? _randomString(20) {
-    var scopes = client!.issuer!.metadata.scopesSupported ?? [];
+    var scopes = client.issuer!.metadata.scopesSupported ?? [];
     for (var s in const ['openid', 'profile', 'email']) {
       if (scopes.contains(s)) {
         this.scopes.add(s);
@@ -356,10 +356,10 @@ class Flow {
     };
   }
 
-  Flow.authorizationCode(Client? client, {String? state})
+  Flow.authorizationCode(Client client, {String? state})
       : this._(FlowType.authorizationCode, 'code', client, state: state);
 
-  Flow.authorizationCodeWithPKCE(Client? client, {String? state})
+  Flow.authorizationCodeWithPKCE(Client client, {String? state})
       : this._(FlowType.proofKeyForCodeExchange, 'code', client, state: state);
 
   Flow.implicit(Client client, {String? state})
@@ -373,7 +373,7 @@ class Flow {
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
 
-  Uri get authenticationUri => client!.issuer!.metadata.authorizationEndpoint
+  Uri get authenticationUri => client.issuer!.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
 
   late Map<String, String> _proofKeyForCodeExchange;
@@ -384,7 +384,7 @@ class Flow {
     var v = {
       'response_type': responseType,
       'scope': scopes.join(' '),
-      'client_id': client!.clientId,
+      'client_id': client.clientId,
       'redirect_uri': redirectUri.toString(),
       'state': state
     }..addAll(
@@ -400,48 +400,48 @@ class Flow {
   }
 
   Future<TokenResponse> _getToken(String? code) async {
-    var methods = client!.issuer!.metadata.tokenEndpointAuthMethodsSupported;
+    var methods = client.issuer!.metadata.tokenEndpointAuthMethodsSupported;
     var json;
     if (type == FlowType.jwtBearer) {
-      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer!.metadata.tokenEndpoint,
           body: {
             'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion': code,
           },
-          client: client!.httpClient);
+          client: client.httpClient);
     } else if (type == FlowType.proofKeyForCodeExchange) {
-      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer!.metadata.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirectUri.toString(),
-            'client_id': client!.clientId,
-            if (client!.clientSecret != null)
-              'client_secret': client!.clientSecret,
+            'client_id': client.clientId,
+            if (client.clientSecret != null)
+              'client_secret': client.clientSecret,
             'code_verifier': _proofKeyForCodeExchange['code_verifier']
           },
-          client: client!.httpClient);
+          client: client.httpClient);
     } else if (methods!.contains('client_secret_post')) {
-      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer!.metadata.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirectUri.toString(),
-            'client_id': client!.clientId,
-            'client_secret': client!.clientSecret
+            'client_id': client.clientId,
+            'client_secret': client.clientSecret
           },
-          client: client!.httpClient);
+          client: client.httpClient);
     } else if (methods.contains('client_secret_basic')) {
-      var h = base64
-          .encode('${client!.clientId}:${client!.clientSecret}'.codeUnits);
-      json = await http.post(client!.issuer!.metadata.tokenEndpoint,
+      var h =
+          base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
+      json = await http.post(client.issuer!.metadata.tokenEndpoint,
           headers: {'authorization': 'Basic $h'},
           body: {
             'grant_type': 'authorization_code',
             'code': code,
             'redirect_uri': redirectUri.toString()
           },
-          client: client!.httpClient);
+          client: client.httpClient);
     } else {
       throw UnsupportedError('Unknown auth methods: $methods');
     }
@@ -461,7 +461,7 @@ class Flow {
       return Credential._(client, await _getToken(code), null);
     } else if (response.containsKey('code') &&
         (type == FlowType.proofKeyForCodeExchange ||
-            client!.clientSecret != null)) {
+            client.clientSecret != null)) {
       var code = response['code'];
       return Credential._(client, await _getToken(code), null);
     } else if (response.containsKey('access_token') ||

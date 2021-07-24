@@ -13,7 +13,7 @@ class Authenticator {
 
   final int port;
 
-  Authenticator(Client? client,
+  Authenticator(Client client,
       {this.port = 3000,
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
