@@ -137,7 +137,7 @@ class Client {
   final String? clientSecret;
 
   /// The [Issuer] representing the OP.
-  final Issuer? issuer;
+  final Issuer issuer;
 
   final http.Client? httpClient;
 
@@ -187,7 +187,7 @@ class Credential {
   Map<String, dynamic>? get response => _token.toJson();
 
   Future<UserInfo> getUserInfo() async {
-    var uri = client!.issuer!.metadata.userinfoEndpoint;
+    var uri = client!.issuer.metadata.userinfoEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support userinfo endpoint.');
     }
@@ -199,7 +199,7 @@ class Credential {
   ///
   /// See https://tools.ietf.org/html/rfc7009
   Future<void> revoke() async {
-    var uri = client!.issuer!.metadata.revocationEndpoint;
+    var uri = client!.issuer.metadata.revocationEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support revocation endpoint.');
     }
@@ -220,7 +220,7 @@ class Credential {
   ///
   /// See https://openid.net/specs/openid-connect-rpinitiated-1_0.html
   Uri? generateLogoutUrl({Uri? redirectUri, String? state}) {
-    return client!.issuer!.metadata.endSessionEndpoint
+    return client!.issuer.metadata.endSessionEndpoint
         ?.replace(queryParameters: {
       'id_token_hint': _token.idToken.toCompactSerialization(),
       if (redirectUri != null)
@@ -246,20 +246,20 @@ class Credential {
   Stream<Exception> validateToken(
       {bool validateClaims = true, bool validateExpiry = true}) async* {
     var keyStore = JsonWebKeyStore();
-    var jwksUri = client!.issuer!.metadata.jwksUri;
+    var jwksUri = client!.issuer.metadata.jwksUri;
     if (jwksUri != null) {
       keyStore.addKeySetUrl(jwksUri);
     }
     if (!await idToken.verify(keyStore,
         allowedArguments:
-            client!.issuer!.metadata.idTokenSigningAlgValuesSupported)) {
+            client!.issuer.metadata.idTokenSigningAlgValuesSupported)) {
       yield JoseException('Could not verify token signature');
     }
 
     yield* Stream.fromIterable(idToken.claims
         .validate(
             expiryTolerance: const Duration(seconds: 30),
-            issuer: client!.issuer!.metadata.issuer,
+            issuer: client!.issuer.metadata.issuer,
             clientId: client!.clientId,
             nonce: nonce)
         .where((e) =>
@@ -279,7 +279,7 @@ class Credential {
       return _token;
     }
 
-    var json = await http.post(client!.issuer!.metadata.tokenEndpoint,
+    var json = await http.post(client!.issuer.metadata.tokenEndpoint,
         body: {
           'grant_type': 'refresh_token',
           'refresh_token': _token.refreshToken,
@@ -308,7 +308,7 @@ class Credential {
             json['nonce']);
 
   Map<String, dynamic> toJson() => {
-        'issuer': client!.issuer!.metadata.toJson(),
+        'issuer': client!.issuer.metadata.toJson(),
         'client_id': client!.clientId,
         'client_secret': client!.clientSecret,
         'token': _token.toJson(),
@@ -338,7 +338,7 @@ class Flow {
 
   Flow._(this.type, this.responseType, this.client, {String? state})
       : state = state ?? _randomString(20) {
-    var scopes = client.issuer!.metadata.scopesSupported ?? [];
+    var scopes = client.issuer.metadata.scopesSupported ?? [];
     for (var s in const ['openid', 'profile', 'email']) {
       if (scopes.contains(s)) {
         this.scopes.add(s);
@@ -367,13 +367,13 @@ class Flow {
             FlowType.implicit,
             ['token id_token', 'id_token token', 'id_token', 'token']
                 .firstWhere((v) =>
-                    client.issuer!.metadata.responseTypesSupported.contains(v)),
+                    client.issuer.metadata.responseTypesSupported.contains(v)),
             client,
             state: state);
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
 
-  Uri get authenticationUri => client.issuer!.metadata.authorizationEndpoint
+  Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
 
   late Map<String, String> _proofKeyForCodeExchange;
@@ -400,17 +400,17 @@ class Flow {
   }
 
   Future<TokenResponse> _getToken(String? code) async {
-    var methods = client.issuer!.metadata.tokenEndpointAuthMethodsSupported;
+    var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     var json;
     if (type == FlowType.jwtBearer) {
-      json = await http.post(client.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
           body: {
             'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion': code,
           },
           client: client.httpClient);
     } else if (type == FlowType.proofKeyForCodeExchange) {
-      json = await http.post(client.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
@@ -422,7 +422,7 @@ class Flow {
           },
           client: client.httpClient);
     } else if (methods!.contains('client_secret_post')) {
-      json = await http.post(client.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
@@ -434,7 +434,7 @@ class Flow {
     } else if (methods.contains('client_secret_basic')) {
       var h =
           base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
-      json = await http.post(client.issuer!.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.metadata.tokenEndpoint,
           headers: {'authorization': 'Basic $h'},
           body: {
             'grant_type': 'authorization_code',

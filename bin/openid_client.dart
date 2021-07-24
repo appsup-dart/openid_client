@@ -234,7 +234,7 @@ class ValidateTokenCommand extends CommandWithRestArguments {
     String? clientId;
     try {
       var client = await Client.forIdToken(token);
-      issuer = client.issuer!.metadata.issuer;
+      issuer = client.issuer.metadata.issuer;
       if (this.issuer != null) issuer = Uri.parse(this.issuer!);
       clientId = this.clientId ?? client.clientId;
     } catch (e) {
