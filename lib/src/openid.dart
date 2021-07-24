@@ -131,7 +131,7 @@ class Issuer {
 /// Represents the client application.
 class Client {
   /// The id of the client.
-  final String? clientId;
+  final String clientId;
 
   /// A secret for authenticating the client to the OP.
   final String? clientSecret;
