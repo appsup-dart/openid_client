@@ -32,11 +32,21 @@ Future post(dynamic url,
 dynamic _processResponse(http.Response response) {
   _logger.fine(
       '${response.request!.method} ${response.request!.url}: ${response.body}');
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw HttpRequestException(
-        statusCode: response.statusCode, body: json.decode(response.body));
+  var contentType = response.headers.entries
+      .firstWhere((v) => v.key.toLowerCase() == 'content-type',
+          orElse: () => MapEntry('', ''))
+      .value;
+  var isJson = contentType.split(';').first == 'application/json';
+
+  var body = isJson ? json.decode(response.body) : response.body;
+  if (body is Map && body['error'] is String) {
+    throw OpenIdException(
+        body['error'], body['error_description'], body['error_uri']);
   }
-  return json.decode(response.body);
+  if (response.statusCode < 200 || response.statusCode >= 300) {
+    throw HttpRequestException(statusCode: response.statusCode, body: body);
+  }
+  return body;
 }
 
 Future<T> _withClient<T>(Future<T> Function(http.Client client) fn,
@@ -69,10 +79,17 @@ class AuthorizedClient extends http.BaseClient {
   }
 }
 
+/// An exception thrown when a http request responds with a status code other
+/// than successful (2xx) and the response is not in the openid error format.
 class HttpRequestException implements Exception {
   final int statusCode;
 
   final dynamic body;
 
   HttpRequestException({required this.statusCode, this.body});
+
+  @override
+  String toString() {
+    return 'HttpRequestException($statusCode): $body';
+  }
 }

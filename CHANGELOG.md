@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+- handle non successful http requests correctly, throwing either an `OpenIdException` when the response is in the openid error format or an `HttpRequestException` otherwise
+
 ## 0.4.2
 
 - `client` in `Flow`, `issuer` and `clientId` in `Client` and `client` in `Credential` are now non-nullable

@@ -12,6 +12,7 @@ import 'http_util.dart' as http;
 import 'model.dart';
 
 export 'model.dart';
+export 'http_util.dart' show HttpRequestException;
 
 /// Represents an OpenId Provider
 class Issuer {
@@ -286,10 +287,6 @@ class Credential {
           if (client.clientSecret != null) 'client_secret': client.clientSecret
         },
         client: client.httpClient);
-    if (json['error'] != null) {
-      throw OpenIdException(
-          json['error'], json['error_description'], json['error_uri']);
-    }
 
     return _token = TokenResponse.fromJson(json);
   }
@@ -443,10 +440,6 @@ class Flow {
     } else {
       throw UnsupportedError('Unknown auth methods: $methods');
     }
-    if (json['error'] != null) {
-      throw OpenIdException(
-          json['error'], json['error_description'], json['error_uri']);
-    }
     return TokenResponse.fromJson(json);
   }
 
@@ -477,6 +470,7 @@ String _randomString(int length) {
   return Iterable.generate(50, (_) => chars[r.nextInt(chars.length)]).join();
 }
 
+/// An exception thrown when a response is received in the openid error format.
 class OpenIdException implements Exception {
   /// An error code
   final String? code;
