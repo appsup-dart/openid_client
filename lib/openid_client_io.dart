@@ -17,10 +17,12 @@ class Authenticator {
       {this.port = 3000,
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
-      Uri? redirectUri})
-      : flow = redirectUri == null
-            ? Flow.authorizationCodeWithPKCE(client)
-            : Flow.authorizationCode(client)
+      Uri? redirectUri,
+      Flow? flow})
+      : flow = flow ??
+            (redirectUri == null
+                ? Flow.authorizationCodeWithPKCE(client)
+                : Flow.authorizationCode(client))
           ..scopes.addAll(scopes)
           ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 
