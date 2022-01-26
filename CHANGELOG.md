@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.4
+
+- added `onTokenChanged` stream to `Credential`
+
+
 ## 0.4.3
 
 - handle non successful http requests correctly, throwing either an `OpenIdException` when the response is in the openid error format or an `HttpRequestException` otherwise

@@ -183,6 +183,9 @@ class Credential {
   final Client client;
   final String? nonce;
 
+  final StreamController<TokenResponse> _onTokenChanged =
+      StreamController.broadcast();
+
   Credential._(this.client, this._token, this.nonce);
 
   Map<String, dynamic>? get response => _token.toJson();
@@ -194,6 +197,9 @@ class Credential {
     }
     return UserInfo.fromJson(await _get(uri));
   }
+
+  /// Emits a new [TokenResponse] every time the token is refreshed
+  Stream<TokenResponse> get onTokenChanged => _onTokenChanged.stream;
 
   /// Allows clients to notify the authorization server that a previously
   /// obtained refresh or access token is no longer needed
@@ -288,7 +294,9 @@ class Credential {
         },
         client: client.httpClient);
 
-    return _token = TokenResponse.fromJson(json);
+    _token = TokenResponse.fromJson(json);
+    _onTokenChanged.add(_token);
+    return _token;
   }
 
   Credential.fromJson(Map<String, dynamic> json, {http.Client? httpClient})
