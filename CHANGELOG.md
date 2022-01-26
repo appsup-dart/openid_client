@@ -3,7 +3,7 @@
 ## 0.4.4
 
 - added `onTokenChanged` stream to `Credential`
-
+- added `Authenticator.fromFlow` constructor
 
 ## 0.4.3
 
