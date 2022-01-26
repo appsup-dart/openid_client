@@ -285,7 +285,7 @@ class Credential {
       return _token;
     }
 
-    var json = await http.post(client.issuer.metadata.tokenEndpoint,
+    var json = await http.post(client.issuer.tokenEndpoint,
         body: {
           'grant_type': 'refresh_token',
           'refresh_token': _token.refreshToken,
@@ -317,6 +317,16 @@ class Credential {
         'token': _token.toJson(),
         'nonce': nonce
       };
+}
+
+extension _IssuerX on Issuer {
+  Uri get tokenEndpoint {
+    var endpoint = metadata.tokenEndpoint;
+    if (endpoint == null) {
+      throw OpenIdException.missingTokenEndpoint();
+    }
+    return endpoint;
+  }
 }
 
 enum FlowType {
@@ -427,14 +437,14 @@ class Flow {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
     dynamic json;
     if (type == FlowType.jwtBearer) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.tokenEndpoint,
           body: {
             'grant_type': 'urn:ietf:params:oauth:grant-type:jwt-bearer',
             'assertion': code,
           },
           client: client.httpClient);
     } else if (type == FlowType.proofKeyForCodeExchange) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
@@ -446,7 +456,7 @@ class Flow {
           },
           client: client.httpClient);
     } else if (methods!.contains('client_secret_post')) {
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.tokenEndpoint,
           body: {
             'grant_type': 'authorization_code',
             'code': code,
@@ -458,7 +468,7 @@ class Flow {
     } else if (methods.contains('client_secret_basic')) {
       var h =
           base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
-      json = await http.post(client.issuer.metadata.tokenEndpoint,
+      json = await http.post(client.issuer.tokenEndpoint,
           headers: {'authorization': 'Basic $h'},
           body: {
             'grant_type': 'authorization_code',
@@ -560,6 +570,14 @@ class OpenIdException implements Exception {
     'invalid_client_metadata':
         'The value of one of the Client Metadata fields is invalid and the server has rejected this request. Note that an Authorization Server MAY choose to substitute a valid value for any requested parameter of a Client\'s Metadata.',
   };
+
+  /// Thrown when trying to get a token, but the token endpoint is missing from
+  /// the issuer metadata
+  const OpenIdException.missingTokenEndpoint()
+      : this._('missing_token_endpoint',
+            'The issuer metadata does not contain a token endpoint.');
+
+  const OpenIdException._(this.code, this.message) : uri = null;
 
   OpenIdException(this.code, String? message, [this.uri])
       : message = message ?? _defaultMessages[code!];

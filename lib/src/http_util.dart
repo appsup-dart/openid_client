@@ -12,13 +12,13 @@ final _logger = Logger('openid_client');
 
 typedef ClientFactory = http.Client Function();
 
-Future get(dynamic url,
+Future get(Uri url,
     {Map<String, String>? headers, required http.Client? client}) async {
   return _processResponse(
       await _withClient((client) => client.get(url, headers: headers), client));
 }
 
-Future post(dynamic url,
+Future post(Uri url,
     {Map<String, String>? headers,
     body,
     Encoding? encoding,
