@@ -30,6 +30,12 @@ void main() {
       var issuer = await Issuer.discover(Issuer.facebook);
       expect(issuer.metadata.issuer, Issuer.facebook);
     });
+
+    test('Microsoft v2', () async {
+      var url = Uri.parse('https://login.microsoftonline.com/common/v2.0/');
+      var issuer = await Issuer.discover(url);
+      expect(issuer.metadata.issuer.host, url.host);
+    });
   });
 
   group('IdToken', () {
@@ -46,6 +52,6 @@ void main() {
 
       expect(await credential.validateToken(validateExpiry: false).toList(),
           isEmpty);
-    });
+    }, onPlatform: {'browser': Skip()});
   });
 }
