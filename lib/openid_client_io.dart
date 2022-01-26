@@ -13,6 +13,12 @@ class Authenticator {
 
   final int port;
 
+  Authenticator.fromFlow(
+    this.flow, {
+    Function(String url)? urlLancher,
+  })  : port = flow.redirectUri.port,
+        urlLancher = urlLancher ?? _runBrowser;
+
   Authenticator(Client client,
       {this.port = 3000,
       this.urlLancher = _runBrowser,
@@ -72,7 +78,6 @@ class Authenticator {
           }));
   }
 
-
   /// Process the Result from a auth Request
   /// You can call this manually if you are redirected to the app by an external browser
   static Future<void> processResult(Map<String, String> result) async {
@@ -101,5 +106,11 @@ void _runBrowser(String url) {
     default:
       throw UnsupportedError(
           'Unsupported platform: ${Platform.operatingSystem}');
+  }
+}
+
+extension FlowX on Flow {
+  Future<Credential> authorize({Function(String url)? urlLauncher}) {
+    return Authenticator.fromFlow(this, urlLancher: urlLauncher).authorize();
   }
 }

@@ -329,13 +329,21 @@ class Flow {
 
   final String state;
 
-  Uri redirectUri = Uri.parse('http://localhost');
+  final Map<String, String> _additionalParameters;
 
-  Flow._(this.type, this.responseType, this.client, {String? state})
-      : state = state ?? _randomString(20) {
-    var scopes = client.issuer.metadata.scopesSupported ?? [];
-    for (var s in const ['openid', 'profile', 'email']) {
-      if (scopes.contains(s)) {
+  Uri redirectUri;
+
+  Flow._(this.type, this.responseType, this.client,
+      {String? state,
+      Map<String, String>? additionalParameters,
+      Uri? redirectUri,
+      List<String> scopes = const ['openid', 'profile', 'email']})
+      : state = state ?? _randomString(20),
+        _additionalParameters = {...?additionalParameters},
+        redirectUri = redirectUri ?? Uri.parse('http://localhost') {
+    var supportedScopes = client.issuer.metadata.scopesSupported ?? [];
+    for (var s in scopes) {
+      if (supportedScopes.contains(s)) {
         this.scopes.add(s);
         break;
       }
@@ -351,8 +359,20 @@ class Flow {
     };
   }
 
-  Flow.authorizationCode(Client client, {String? state})
-      : this._(FlowType.authorizationCode, 'code', client, state: state);
+  Flow.authorizationCode(Client client,
+      {String? state,
+      String? prompt,
+      String? accessType,
+      Uri? redirectUri,
+      List<String> scopes = const ['openid', 'profile', 'email']})
+      : this._(FlowType.authorizationCode, 'code', client,
+            state: state,
+            additionalParameters: {
+              if (prompt != null) 'prompt': prompt,
+              if (accessType != null) 'access_type': accessType,
+            },
+            scopes: scopes,
+            redirectUri: redirectUri);
 
   Flow.authorizationCodeWithPKCE(Client client, {String? state})
       : this._(FlowType.proofKeyForCodeExchange, 'code', client, state: state);
@@ -377,6 +397,7 @@ class Flow {
 
   Map<String, String?> get _authenticationUriParameters {
     var v = {
+      ..._additionalParameters,
       'response_type': responseType,
       'scope': scopes.join(' '),
       'client_id': client.clientId,
