@@ -330,7 +330,7 @@ void main(List<String> args) async {
   runner.argParser.addFlag('verbose', help: 'display more information');
 
   try {
-    return await runner.run(args);
+    await runner.run(args);
   } catch (e, tr) {
     print(e);
     if (runner.argParser.parse(args)['verbose']) {

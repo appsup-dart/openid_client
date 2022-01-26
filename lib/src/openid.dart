@@ -396,7 +396,7 @@ class Flow {
 
   Future<TokenResponse> _getToken(String? code) async {
     var methods = client.issuer.metadata.tokenEndpointAuthMethodsSupported;
-    var json;
+    dynamic json;
     if (type == FlowType.jwtBearer) {
       json = await http.post(client.issuer.metadata.tokenEndpoint,
           body: {
