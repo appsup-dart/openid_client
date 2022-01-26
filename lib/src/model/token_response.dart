@@ -16,7 +16,9 @@ class TokenResponse extends JsonObject {
   String? get refreshToken => this['refresh_token'];
 
   /// Expiration time of the Access Token since the response was generated.
-  Duration? get expiresIn => getTyped('expires_in');
+  Duration? get expiresIn => expiresAt == null
+      ? getTyped('expires_in')
+      : expiresAt!.difference(clock.now());
 
   /// ID Token
   IdToken get idToken =>

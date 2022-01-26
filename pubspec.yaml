@@ -13,6 +13,7 @@ dependencies:
   logging: ^1.0.0
   args: ^2.0.0
   meta: ^1.0.0
+  clock: ^1.1.0
 
 dev_dependencies:
   test: ^1.16.5
