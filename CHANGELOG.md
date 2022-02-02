@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+
+- handle tokens without expiration
+
 ## 0.4.4
 
 - added `onTokenChanged` stream to `Credential`

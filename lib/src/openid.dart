@@ -278,7 +278,8 @@ class Credential {
   Future<TokenResponse> getTokenResponse([bool forceRefresh = false]) async {
     if (!forceRefresh &&
         _token.accessToken != null &&
-        _token.expiresAt!.isAfter(DateTime.now())) {
+        (_token.expiresAt == null ||
+            _token.expiresAt!.isAfter(DateTime.now()))) {
       return _token;
     }
     if (_token.accessToken == null && _token.refreshToken == null) {
