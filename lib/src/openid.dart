@@ -295,7 +295,8 @@ class Credential {
         },
         client: client.httpClient);
 
-    _token = TokenResponse.fromJson(json);
+    _token =
+        TokenResponse.fromJson({'refresh_token': _token.refreshToken, ...json});
     _onTokenChanged.add(_token);
     return _token;
   }

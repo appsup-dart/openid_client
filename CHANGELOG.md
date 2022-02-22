@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.6
+
+- keep old refresh token when access token refreshed and no new refresh token received
 ## 0.4.5
 
 - handle tokens without expiration
