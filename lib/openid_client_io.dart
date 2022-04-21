@@ -13,28 +13,39 @@ class Authenticator {
 
   final int port;
 
+  // static html string to render as response of redirect port for local server.
+  late final String? _redirectHtml;
+
+  static final String _redirectHtmlDefault = '<html>'
+      '<h1>You can now close this window</h1>'
+      '<script>window.close();</script>'
+      '</html>';
+
   Authenticator.fromFlow(
     this.flow, {
     Function(String url)? urlLancher,
   })  : port = flow.redirectUri.port,
         urlLancher = urlLancher ?? _runBrowser;
 
-  Authenticator(Client client,
-      {this.port = 3000,
-      this.urlLancher = _runBrowser,
-      Iterable<String> scopes = const [],
-      Uri? redirectUri})
-      : flow = redirectUri == null
+  Authenticator(
+    Client client, {
+    this.port = 3000,
+    this.urlLancher = _runBrowser,
+    Iterable<String> scopes = const [],
+    Uri? redirectUri,
+    String? redirectHtml,
+  })  : flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client)
             : Flow.authorizationCode(client)
           ..scopes.addAll(scopes)
-          ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
+          ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/'),
+        _redirectHtml = redirectHtml;
 
   Future<Credential> authorize() async {
     var state = flow.authenticationUri.queryParameters['state']!;
 
     _requestsByState[state] = Completer();
-    await _startServer(port);
+    await _startServer(port, redirectHtml: _redirectHtml);
     urlLancher(flow.authenticationUri.toString());
 
     var response = await _requestsByState[state]!.future;
@@ -54,7 +65,7 @@ class Authenticator {
   static final Map<String, Completer<Map<String, String>>> _requestsByState =
       {};
 
-  static Future<HttpServer> _startServer(int port) {
+  static Future<HttpServer> _startServer(int port, {String? redirectHtml}) {
     return _requestServers[port] ??=
         (HttpServer.bind(InternetAddress.anyIPv4, port)
           ..then((requestServer) async {
@@ -63,10 +74,7 @@ class Authenticator {
               print('request $request');
               request.response.statusCode = 200;
               request.response.headers.set('Content-type', 'text/html');
-              request.response.writeln('<html>'
-                  '<h1>You can now close this window</h1>'
-                  '<script>window.close();</script>'
-                  '</html>');
+              request.response.writeln(redirectHtml ?? _redirectHtmlDefault);
               await request.response.close();
               var result = request.requestedUri.queryParameters;
 
