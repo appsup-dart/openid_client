@@ -13,9 +13,12 @@ class Authenticator {
 
   final int port;
 
+  final String? redirectMessage;
+
   Authenticator.fromFlow(
     this.flow, {
     Function(String url)? urlLancher,
+    this.redirectMessage = 'You can now close this window',
   })  : port = flow.redirectUri.port,
         urlLancher = urlLancher ?? _runBrowser;
 
@@ -23,7 +26,8 @@ class Authenticator {
       {this.port = 3000,
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
-      Uri? redirectUri})
+      Uri? redirectUri,
+      this.redirectMessage = 'You can now close this window'})
       : flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client)
             : Flow.authorizationCode(client)
@@ -34,7 +38,7 @@ class Authenticator {
     var state = flow.authenticationUri.queryParameters['state']!;
 
     _requestsByState[state] = Completer();
-    await _startServer(port);
+    await _startServer(port, redirectMessage);
     urlLancher(flow.authenticationUri.toString());
 
     var response = await _requestsByState[state]!.future;
@@ -54,7 +58,7 @@ class Authenticator {
   static final Map<String, Completer<Map<String, String>>> _requestsByState =
       {};
 
-  static Future<HttpServer> _startServer(int port) {
+  static Future<HttpServer> _startServer(int port, String? redirectMessage) {
     return _requestServers[port] ??=
         (HttpServer.bind(InternetAddress.anyIPv4, port)
           ..then((requestServer) async {
@@ -62,11 +66,13 @@ class Authenticator {
             await for (var request in requestServer) {
               print('request $request');
               request.response.statusCode = 200;
-              request.response.headers.set('Content-type', 'text/html');
-              request.response.writeln('<html>'
-                  '<h1>You can now close this window</h1>'
-                  '<script>window.close();</script>'
-                  '</html>');
+              if (redirectMessage != null) {
+                request.response.headers.set('Content-type', 'text/html');
+                request.response.writeln('<html>'
+                    '<h1>$redirectMessage</h1>'
+                    '<script>window.close();</script>'
+                    '</html>');
+              }
               await request.response.close();
               var result = request.requestedUri.queryParameters;
 
