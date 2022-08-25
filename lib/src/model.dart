@@ -10,4 +10,3 @@ part 'model/token_response.dart';
 
 part 'model/claims.dart';
 part 'model/token.dart';
-part 'model/redirect_html_type.dart';
