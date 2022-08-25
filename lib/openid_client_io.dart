@@ -158,3 +158,5 @@ extension FlowX on Flow {
     return Authenticator.fromFlow(this, urlLancher: urlLauncher).authorize();
   }
 }
+
+enum RedirectHtmlType { htmlDefault, loading, custom }
