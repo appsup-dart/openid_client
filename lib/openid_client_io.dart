@@ -13,6 +13,8 @@ class Authenticator {
 
   final int port;
 
+  RedirectHtmlType redirectHtmlType = RedirectHtmlType.htmlDefault;
+
   Authenticator.fromFlow(
     this.flow, {
     Function(String url)? urlLancher,
@@ -23,7 +25,8 @@ class Authenticator {
       {this.port = 3000,
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
-      Uri? redirectUri})
+      Uri? redirectUri,
+      this.redirectHtmlType = RedirectHtmlType.htmlDefault})
       : flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client)
             : Flow.authorizationCode(client)
@@ -43,7 +46,7 @@ class Authenticator {
   }
 
   String _getRedirectHtml() {
-    switch (flow.redirectHtmlType) {
+    switch (redirectHtmlType) {
       case RedirectHtmlType.loading:
         return '<html>'
             '<head>'
