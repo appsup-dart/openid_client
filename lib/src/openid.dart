@@ -351,8 +351,6 @@ class Flow {
 
   final Map<String, String> _additionalParameters;
 
-  final RedirectHtmlType redirectHtmlType = RedirectHtmlType.htmlDefault;
-
   final String redirectHtmlCustom = '';
 
   Uri redirectUri;
@@ -591,5 +589,3 @@ class OpenIdException implements Exception {
   @override
   String toString() => 'OpenIdException($code): $message';
 }
-
-enum RedirectHtmlType { htmlDefault, loading, custom }

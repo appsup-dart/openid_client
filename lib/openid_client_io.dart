@@ -4,6 +4,8 @@ import 'openid_client.dart';
 import 'dart:async';
 import 'dart:io';
 
+import 'src/model/redirect_html_type.dart';
+
 export 'openid_client.dart';
 
 class Authenticator {
