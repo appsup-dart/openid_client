@@ -28,7 +28,8 @@ class Authenticator {
       this.urlLancher = _runBrowser,
       Iterable<String> scopes = const [],
       Uri? redirectUri,
-      this.redirectHtmlType = RedirectHtmlType.htmlDefault})
+      this.redirectHtmlType = RedirectHtmlType.htmlDefault,
+      this.redirectHtmlCustom = ''})
       : flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client)
             : Flow.authorizationCode(client)
