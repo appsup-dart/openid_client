@@ -351,8 +351,6 @@ class Flow {
 
   final Map<String, String> _additionalParameters;
 
-  final String redirectHtmlCustom = '';
-
   Uri redirectUri;
 
   Flow._(this.type, this.responseType, this.client,

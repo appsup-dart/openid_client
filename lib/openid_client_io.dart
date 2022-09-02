@@ -15,6 +15,8 @@ class Authenticator {
 
   RedirectHtmlType redirectHtmlType = RedirectHtmlType.htmlDefault;
 
+  String redirectHtmlCustom = '';
+
   Authenticator.fromFlow(
     this.flow, {
     Function(String url)? urlLancher,
@@ -80,7 +82,7 @@ class Authenticator {
             '</body>'
             '</html>';
       case RedirectHtmlType.custom:
-        return flow.redirectHtmlCustom;
+        return redirectHtmlCustom;
       default:
         return '<html>'
             '<h1>You can now close this window</h1>'
