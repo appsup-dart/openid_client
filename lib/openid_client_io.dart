@@ -1,8 +1,9 @@
 library openid_client.io;
 
-import 'openid_client.dart';
 import 'dart:async';
 import 'dart:io';
+
+import 'openid_client.dart';
 
 export 'openid_client.dart';
 
@@ -50,8 +51,8 @@ class Authenticator {
   Future<void> cancel() async {
     final state = flow.authenticationUri.queryParameters['state'];
     _requestsByState[state!]?.completeError(Exception('Flow was cancelled'));
-    final server = await _requestServers.remove(port)!;
-    await server.close();
+    final server = await _requestServers.remove(port);
+    await server?.close();
   }
 
   static final Map<int, Future<HttpServer>> _requestServers = {};
