@@ -2,6 +2,7 @@ library openid_client.io;
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:developer';
 
 import 'openid_client.dart';
 
@@ -75,7 +76,7 @@ class Authenticator {
   static Future<HttpServer> _startServer(int port, String? htmlPage, String? redirectMessage) {
     return _requestServers[port] ??= (HttpServer.bind(InternetAddress.anyIPv4, port)
       ..then((requestServer) async {
-        print('Server started at port $port');
+        log('Server started at port $port');
         await for (var request in requestServer) {
           request.response.statusCode = 200;
           if (redirectMessage != null) {
