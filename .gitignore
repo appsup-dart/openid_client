@@ -24,3 +24,5 @@ doc/api/
 *.iws
 
 .DS_Store
+
+.vscode/

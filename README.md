@@ -22,6 +22,8 @@ for Facebook, which is predefined in the library.
 
 ## Usage
 
+Below are some examples of how to use the library. For more examples, see the [`example` folder](example/example.md). It contains full examples of how to use the library with a keycloak server in a flutter, command line and browser application.
+
 A simple usage example:
 
 ```dart
