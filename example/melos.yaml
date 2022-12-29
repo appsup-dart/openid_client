@@ -1,0 +1,22 @@
+
+name: openid_client
+
+repository: https://github.com/appsup-dart/openid_client
+
+
+packages:
+  - .
+
+ide:
+  intellij: false
+
+command:
+  version:
+    linkToCommits: true
+
+scripts:
+  preversion: 
+    exec: dart test -j 1
+
+
+ 

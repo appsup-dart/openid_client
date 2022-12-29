@@ -366,7 +366,6 @@ class Flow {
     for (var s in scopes) {
       if (supportedScopes.contains(s)) {
         this.scopes.add(s);
-        break;
       }
     }
 
@@ -395,8 +394,19 @@ class Flow {
             scopes: scopes,
             redirectUri: redirectUri);
 
-  Flow.authorizationCodeWithPKCE(Client client, {String? state, String? codeVerifier})
-      : this._(FlowType.proofKeyForCodeExchange, 'code', client, state: state, codeVerifier: codeVerifier);
+  Flow.authorizationCodeWithPKCE(
+    Client client, {
+    String? state,
+    List<String> scopes = const ['openid', 'profile', 'email'],
+    String? codeVerifier,
+  }) : this._(
+          FlowType.proofKeyForCodeExchange,
+          'code',
+          client,
+          state: state,
+          scopes: scopes,
+          codeVerifier: codeVerifier,
+        );
 
   Flow.implicit(Client client, {String? state})
       : this._(

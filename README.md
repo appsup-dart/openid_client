@@ -1,3 +1,6 @@
+[:heart: sponsor](https://github.com/sponsors/rbellens)
+
+
 # openid_client
 
 [![Build Status](https://travis-ci.org/appsup-dart/openid_client.svg?branch=master)](https://travis-ci.org/appsup-dart/openid_client)
@@ -21,6 +24,8 @@ for Facebook, which is predefined in the library.
 
 
 ## Usage
+
+Below are some examples of how to use the library. For more examples, see the [`example` folder](example/example.md). It contains full examples of how to use the library with a keycloak server in a flutter, command line and browser application.
 
 A simple usage example:
 
@@ -215,3 +220,10 @@ Show the content of an id token and validate it:
 Please file feature requests and bugs at the [issue tracker][tracker].
 
 [tracker]: https://github.com/appsup-dart/openid_client/issues
+
+## Sponsor
+
+Creating and maintaining this package takes a lot of time. If you like the result, please consider to [:heart: sponsor](https://github.com/sponsors/rbellens). 
+With your support, I will be able to further improve and support this project.
+Also, check out my other dart packages at [pub.dev](https://pub.dev/packages?q=publisher%3Aappsup.be).
+
