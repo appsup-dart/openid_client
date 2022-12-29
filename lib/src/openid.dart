@@ -394,8 +394,17 @@ class Flow {
             scopes: scopes,
             redirectUri: redirectUri);
 
-  Flow.authorizationCodeWithPKCE(Client client, {String? state})
-      : this._(FlowType.proofKeyForCodeExchange, 'code', client, state: state);
+  Flow.authorizationCodeWithPKCE(
+    Client client, {
+    String? state,
+    List<String> scopes = const ['openid', 'profile', 'email'],
+  }) : this._(
+          FlowType.proofKeyForCodeExchange,
+          'code',
+          client,
+          state: state,
+          scopes: scopes,
+        );
 
   Flow.implicit(Client client, {String? state})
       : this._(
