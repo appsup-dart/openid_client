@@ -19,7 +19,7 @@ dependencies:
 
 dev_dependencies:
   test: ^1.16.5
-  lints: ^1.0.0
+  lints: ^2.0.1
 
 executables:
   openid_client: openid_client
