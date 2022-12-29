@@ -355,6 +355,7 @@ class Flow {
 
   Flow._(this.type, this.responseType, this.client,
       {String? state,
+      String? codeVerifier,
       Map<String, String>? additionalParameters,
       Uri? redirectUri,
       List<String> scopes = const ['openid', 'profile', 'email']})
@@ -368,7 +369,7 @@ class Flow {
       }
     }
 
-    var verifier = _randomString(50);
+    var verifier = codeVerifier ?? _randomString(50);
     var challenge = base64Url
         .encode(SHA256Digest().process(Uint8List.fromList(verifier.codeUnits)))
         .replaceAll('=', '');
@@ -397,12 +398,14 @@ class Flow {
     Client client, {
     String? state,
     List<String> scopes = const ['openid', 'profile', 'email'],
+    String? codeVerifier,
   }) : this._(
           FlowType.proofKeyForCodeExchange,
           'code',
           client,
           state: state,
           scopes: scopes,
+          codeVerifier: codeVerifier,
         );
 
   Flow.implicit(Client client, {String? state})
