@@ -519,7 +519,8 @@ class Flow {
 String _randomString(int length) {
   var r = Random.secure();
   var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  return Iterable.generate(50, (_) => chars[r.nextInt(chars.length)]).join();
+  return Iterable.generate(length, (_) => chars[r.nextInt(chars.length)])
+      .join();
 }
 
 /// An exception thrown when a response is received in the openid error format.
