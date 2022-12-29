@@ -24,8 +24,8 @@ class Authenticator {
   }
 
   void logout() async {
-    _forgetCredentials();
     var c = await credential;
+    _forgetCredentials();
     if (c == null) return;
     var uri = c.generateLogoutUrl(
         redirectUri: Uri.parse(window.location.href).removeFragment());
