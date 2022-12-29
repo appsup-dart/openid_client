@@ -335,7 +335,8 @@ enum FlowType {
   implicit,
   authorizationCode,
   proofKeyForCodeExchange,
-  jwtBearer
+  jwtBearer,
+  password,
 }
 
 class Flow {
@@ -378,6 +379,20 @@ class Flow {
       'code_challenge': challenge
     };
   }
+
+  /// Creates a new [Flow] for the password flow.
+  ///
+  /// This flow can be used for active authentication by highly-trusted
+  /// applications. Call [Flow.loginWithPassword] to authenticate a user with
+  /// their username and password.
+  Flow.password(Client client,
+      {List<String> scopes = const ['openid', 'profile', 'email']})
+      : this._(
+          FlowType.password,
+          '',
+          client,
+          scopes: scopes,
+        );
 
   Flow.authorizationCode(Client client,
       {String? state,
@@ -493,6 +508,26 @@ class Flow {
       throw UnsupportedError('Unknown auth methods: $methods');
     }
     return TokenResponse.fromJson(json);
+  }
+
+  /// Login with username and password
+  ///
+  /// Only allowed for [Flow.password] flows.
+  Future<Credential> loginWithPassword(
+      {required String username, required String password}) async {
+    if (type != FlowType.password) {
+      throw UnsupportedError('Flow is not password');
+    }
+    var json = await http.post(client.issuer.tokenEndpoint,
+        body: {
+          'grant_type': 'password',
+          'username': username,
+          'password': password,
+          'scope': scopes.join(' '),
+          'client_id': client.clientId,
+        },
+        client: client.httpClient);
+    return Credential._(client, TokenResponse.fromJson(json), null);
   }
 
   Future<Credential> callback(Map<String, String> response) async {
