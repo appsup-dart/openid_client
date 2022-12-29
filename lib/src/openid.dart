@@ -365,7 +365,6 @@ class Flow {
     for (var s in scopes) {
       if (supportedScopes.contains(s)) {
         this.scopes.add(s);
-        break;
       }
     }
 
