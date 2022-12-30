@@ -423,14 +423,27 @@ class Flow {
           codeVerifier: codeVerifier,
         );
 
-  Flow.implicit(Client client, {String? state})
+  Flow.implicit(Client client, {String? state, String? device})
       : this._(
             FlowType.implicit,
-            ['token id_token', 'id_token token', 'id_token', 'token']
-                .firstWhere((v) =>
-                    client.issuer.metadata.responseTypesSupported.contains(v)),
+            [
+              'token id_token',
+              'id_token token',
+              'id_token',
+              'token',
+            ].firstWhere((v) =>
+                client.issuer.metadata.responseTypesSupported.contains(v)),
             client,
-            state: state);
+            state: state,
+            scopes: [
+              'openid',
+              'profile',
+              'email',
+              if (device != null) 'offline_access'
+            ],
+            additionalParameters: {
+              if (device != null) 'device': device
+            });
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
 
