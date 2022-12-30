@@ -25,6 +25,9 @@ Future<void> main() async {
     document.querySelector('#when-logged-in')!.style.display = 'block';
     document.querySelector('#name')!.text = userData.name!;
     document.querySelector('#email')!.text = userData.email!;
+    document.querySelector('#logout')!.onClick.listen((_) async {
+      authenticator.logout();
+    });
   } else {
     document.querySelector('#when-logged-out')!.style.display = 'block';
     document.querySelector('#login')!.onClick.listen((_) async {
