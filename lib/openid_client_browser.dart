@@ -35,9 +35,11 @@ class Authenticator {
   Authenticator._(this.flow) : credential = _credentialFromUri(flow);
 
   Authenticator(Client client,
-      {Iterable<String> scopes = const [], String? device})
+      {Iterable<String> scopes = const [], String? device, String? prompt})
       : this._(Flow.implicit(client,
-            device: device, state: window.localStorage['openid_client:state'])
+            device: device,
+            state: window.localStorage['openid_client:state'],
+            prompt: prompt)
           ..scopes.addAll(scopes)
           ..redirectUri = Uri.parse(window.location.href).removeFragment());
 

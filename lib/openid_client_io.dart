@@ -60,6 +60,7 @@ class Authenticator {
     Iterable<String> scopes = const [],
     Uri? redirectUri,
     String? redirectMessage,
+    String? prompt,
     this.htmlPage,
   })  : assert(
           htmlPage != null ? redirectMessage == null : true,
@@ -67,8 +68,8 @@ class Authenticator {
         ),
         redirectMessage = redirectMessage ?? 'You can now close this window',
         flow = redirectUri == null
-            ? Flow.authorizationCodeWithPKCE(client)
-            : Flow.authorizationCode(client)
+            ? Flow.authorizationCodeWithPKCE(client, prompt: prompt)
+            : Flow.authorizationCode(client, prompt: prompt)
           ..scopes.addAll(scopes)
           ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 

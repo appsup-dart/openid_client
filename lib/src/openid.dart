@@ -422,6 +422,7 @@ class Flow {
   Flow.authorizationCodeWithPKCE(
     Client client, {
     String? state,
+    String? prompt,
     List<String> scopes = const ['openid', 'profile', 'email'],
     String? codeVerifier,
   }) : this._(
@@ -431,9 +432,12 @@ class Flow {
           state: state,
           scopes: scopes,
           codeVerifier: codeVerifier,
+          additionalParameters: {
+            if (prompt != null) 'prompt': prompt,
+          },
         );
 
-  Flow.implicit(Client client, {String? state, String? device})
+  Flow.implicit(Client client, {String? state, String? device, String? prompt})
       : this._(
             FlowType.implicit,
             [
@@ -452,7 +456,8 @@ class Flow {
               if (device != null) 'offline_access'
             ],
             additionalParameters: {
-              if (device != null) 'device': device
+              if (device != null) 'device': device,
+              if (prompt != null) 'prompt': prompt,
             });
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
