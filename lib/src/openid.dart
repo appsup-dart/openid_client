@@ -295,10 +295,20 @@ class Credential {
         },
         client: client.httpClient);
 
+    updateToken(json);
+    return _token;
+  }
+
+  /// Updates the token with the given [json] and notifies all listeners
+  /// of the new token.
+  ///
+  /// This method is used internally by [getTokenResponse], but can also be
+  /// used to update the token manually, e.g. when no refresh token is available
+  /// and the token is updated by other means.
+  void updateToken(Map<String, dynamic> json) {
     _token =
         TokenResponse.fromJson({'refresh_token': _token.refreshToken, ...json});
     _onTokenChanged.add(_token);
-    return _token;
   }
 
   Credential.fromJson(Map<String, dynamic> json, {http.Client? httpClient})

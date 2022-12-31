@@ -21,12 +21,22 @@ Future<void> main() async {
   var credential = await authenticator.credential;
 
   if (credential != null) {
-    final userData = await credential.getUserInfo();
+    Future<void> refresh() async {
+      var userData = await credential!.getUserInfo();
+      document.querySelector('#name')!.text = userData.name!;
+      document.querySelector('#email')!.text = userData.email!;
+      document.querySelector('#issuedAt')!.text =
+          credential!.idToken.claims.issuedAt.toIso8601String();
+    }
+
+    await refresh();
     document.querySelector('#when-logged-in')!.style.display = 'block';
-    document.querySelector('#name')!.text = userData.name!;
-    document.querySelector('#email')!.text = userData.email!;
     document.querySelector('#logout')!.onClick.listen((_) async {
       authenticator.logout();
+    });
+    document.querySelector('#refresh')!.onClick.listen((_) async {
+      credential = await authenticator.trySilentRefresh();
+      await refresh();
     });
   } else {
     document.querySelector('#when-logged-out')!.style.display = 'block';

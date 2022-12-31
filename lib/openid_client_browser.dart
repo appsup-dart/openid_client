@@ -59,7 +59,9 @@ class Authenticator {
   }
 
   static Future<Credential?> _credentialFromUri(Flow flow) async {
-    var uri = Uri(query: Uri.parse(window.location.href).fragment);
+    var uri = Uri.parse(window.location.href);
+    var iframe = uri.queryParameters['iframe'] != null;
+    uri = Uri(query: uri.fragment);
     var q = uri.queryParameters;
     if (q.containsKey('access_token') ||
         q.containsKey('code') ||
@@ -67,8 +69,62 @@ class Authenticator {
       window.history.replaceState(
           '', '', Uri.parse(window.location.href).removeFragment().toString());
       window.localStorage.remove('openid_client:state');
-      return await flow.callback(q.cast());
+
+      var c = await flow.callback(q.cast());
+      if (iframe) window.parent!.postMessage(c.response, '*');
+      return c;
     }
     return null;
+  }
+
+  /// Tries to refresh the access token silently in a hidden iframe.
+  ///
+  /// The implicit flow does not support refresh tokens. This method uses a
+  /// hidden iframe to try to get a new access token without the user having to
+  /// sign in again. It returns a [Future] that completes with a [Credential]
+  /// when the iframe receives a response from the authorization server. The
+  /// future will timeout after [timeout] if the iframe does not receive a
+  /// response.
+  Future<Credential> trySilentRefresh(
+      {Duration timeout = const Duration(seconds: 20)}) async {
+    var iframe = IFrameElement();
+    var url = flow.authenticationUri;
+    window.localStorage['openid_client:state'] = flow.state;
+    iframe.src = url.replace(queryParameters: {
+      ...url.queryParameters,
+      'prompt': 'none',
+      'redirect_uri': flow.redirectUri.replace(queryParameters: {
+        ...flow.redirectUri.queryParameters,
+        'iframe': 'true',
+      }).toString(),
+    }).toString();
+    iframe.style.display = 'none';
+    document.body!.append(iframe);
+    var event = await window.onMessage.first.timeout(timeout).whenComplete(() {
+      iframe.remove();
+    });
+    if (event.data is Map) {
+      var current = await credential;
+      if (current == null) {
+        return flow.client.createCredential(
+          accessToken: event.data['access_token'],
+          expiresAt: event.data['expires_at'] == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(
+                  int.parse(event.data['expires_at'].toString()) * 1000),
+          refreshToken: event.data['refresh_token'],
+          expiresIn: event.data['expires_in'] == null
+              ? null
+              : Duration(
+                  seconds: int.parse(event.data['expires_in'].toString())),
+          tokenType: event.data['token_type'],
+          idToken: event.data['id_token'],
+        );
+      } else {
+        return current..updateToken((event.data as Map).cast());
+      }
+    } else {
+      throw Exception('${event.data}');
+    }
   }
 }
