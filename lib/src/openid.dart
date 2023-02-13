@@ -42,14 +42,12 @@ class Issuer {
   static final Uri yahoo = Uri.parse('https://api.login.yahoo.com');
 
   /// Url of the microsoft issuer.
-  static final Uri microsoft =
-      Uri.parse('https://login.microsoftonline.com/common');
+  static final Uri microsoft = Uri.parse('https://login.microsoftonline.com/common');
 
   /// Url of the salesforce issuer.
   static final Uri salesforce = Uri.parse('https://login.salesforce.com');
 
-  static Uri firebase(String id) =>
-      Uri.parse('https://securetoken.google.com/$id');
+  static Uri firebase(String id) => Uri.parse('https://securetoken.google.com/$id');
 
   static final Map<Uri, Issuer?> _discoveries = {
     facebook: Issuer(OpenIdProviderMetadata.fromJson({
@@ -144,8 +142,7 @@ class Client {
 
   Client(this.issuer, this.clientId, {this.clientSecret, this.httpClient});
 
-  static Future<Client> forIdToken(String idToken,
-      {http.Client? httpClient}) async {
+  static Future<Client> forIdToken(String idToken, {http.Client? httpClient}) async {
     var token = JsonWebToken.unverified(idToken);
     var claims = OpenIdClaims.fromJson(token.claims.toJson());
     var issuer = await Issuer.discover(claims.issuer, httpClient: httpClient);
@@ -172,8 +169,7 @@ class Client {
             'refresh_token': refreshToken,
             'id_token': idToken,
             if (expiresIn != null) 'expires_in': expiresIn.inSeconds,
-            if (expiresAt != null)
-              'expires_at': expiresAt.millisecondsSinceEpoch ~/ 1000
+            if (expiresAt != null) 'expires_at': expiresAt.millisecondsSinceEpoch ~/ 1000
           }),
           null);
 }
@@ -183,8 +179,7 @@ class Credential {
   final Client client;
   final String? nonce;
 
-  final StreamController<TokenResponse> _onTokenChanged =
-      StreamController.broadcast();
+  final StreamController<TokenResponse> _onTokenChanged = StreamController.broadcast();
 
   Credential._(this.client, this._token, this.nonce);
 
@@ -229,15 +224,13 @@ class Credential {
   Uri? generateLogoutUrl({Uri? redirectUri, String? state}) {
     return client.issuer.metadata.endSessionEndpoint?.replace(queryParameters: {
       'id_token_hint': _token.idToken.toCompactSerialization(),
-      if (redirectUri != null)
-        'post_logout_redirect_uri': redirectUri.toString(),
+      if (redirectUri != null) 'post_logout_redirect_uri': redirectUri.toString(),
       if (state != null) 'state': state
     });
   }
 
   http.Client createHttpClient([http.Client? baseClient]) =>
-      http.AuthorizedClient(
-          baseClient ?? client.httpClient ?? http.Client(), this);
+      http.AuthorizedClient(baseClient ?? client.httpClient ?? http.Client(), this);
 
   Future _get(uri) async {
     return http.get(uri, client: createHttpClient());
@@ -249,16 +242,14 @@ class Credential {
 
   IdToken get idToken => _token.idToken;
 
-  Stream<Exception> validateToken(
-      {bool validateClaims = true, bool validateExpiry = true}) async* {
+  Stream<Exception> validateToken({bool validateClaims = true, bool validateExpiry = true}) async* {
     var keyStore = JsonWebKeyStore();
     var jwksUri = client.issuer.metadata.jwksUri;
     if (jwksUri != null) {
       keyStore.addKeySetUrl(jwksUri);
     }
     if (!await idToken.verify(keyStore,
-        allowedArguments:
-            client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
+        allowedArguments: client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
       yield JoseException('Could not verify token signature');
     }
 
@@ -269,8 +260,7 @@ class Credential {
             clientId: client.clientId,
             nonce: nonce)
         .where((e) =>
-            validateExpiry ||
-            !(e is JoseException && e.message.startsWith('JWT expired.'))));
+            validateExpiry || !(e is JoseException && e.message.startsWith('JWT expired.'))));
   }
 
   String? get refreshToken => _token.refreshToken;
@@ -278,8 +268,7 @@ class Credential {
   Future<TokenResponse> getTokenResponse([bool forceRefresh = false]) async {
     if (!forceRefresh &&
         _token.accessToken != null &&
-        (_token.expiresAt == null ||
-            _token.expiresAt!.isAfter(DateTime.now()))) {
+        (_token.expiresAt == null || _token.expiresAt!.isAfter(DateTime.now()))) {
       return _token;
     }
     if (_token.accessToken == null && _token.refreshToken == null) {
@@ -306,19 +295,15 @@ class Credential {
   /// used to update the token manually, e.g. when no refresh token is available
   /// and the token is updated by other means.
   void updateToken(Map<String, dynamic> json) {
-    _token =
-        TokenResponse.fromJson({'refresh_token': _token.refreshToken, ...json});
+    _token = TokenResponse.fromJson({'refresh_token': _token.refreshToken, ...json});
     _onTokenChanged.add(_token);
   }
 
   Credential.fromJson(Map<String, dynamic> json, {http.Client? httpClient})
       : this._(
-            Client(
-                Issuer(OpenIdProviderMetadata.fromJson(
-                    (json['issuer'] as Map).cast())),
+            Client(Issuer(OpenIdProviderMetadata.fromJson((json['issuer'] as Map).cast())),
                 json['client_id'],
-                clientSecret: json['client_secret'],
-                httpClient: httpClient),
+                clientSecret: json['client_secret'], httpClient: httpClient),
             TokenResponse.fromJson((json['token'] as Map).cast()),
             json['nonce']);
 
@@ -347,6 +332,7 @@ enum FlowType {
   proofKeyForCodeExchange,
   jwtBearer,
   password,
+  device,
 }
 
 class Flow {
@@ -384,19 +370,23 @@ class Flow {
     var challenge = base64Url
         .encode(SHA256Digest().process(Uint8List.fromList(verifier.codeUnits)))
         .replaceAll('=', '');
-    _proofKeyForCodeExchange = {
-      'code_verifier': verifier,
-      'code_challenge': challenge
-    };
+    _proofKeyForCodeExchange = {'code_verifier': verifier, 'code_challenge': challenge};
   }
+
+  Flow.device(Client client, {List<String> scopes = const ['openid', 'profile', 'email']})
+      : this._(
+          FlowType.device,
+          '',
+          client,
+          scopes: scopes,
+        );
 
   /// Creates a new [Flow] for the password flow.
   ///
   /// This flow can be used for active authentication by highly-trusted
   /// applications. Call [Flow.loginWithPassword] to authenticate a user with
   /// their username and password.
-  Flow.password(Client client,
-      {List<String> scopes = const ['openid', 'profile', 'email']})
+  Flow.password(Client client, {List<String> scopes = const ['openid', 'profile', 'email']})
       : this._(
           FlowType.password,
           '',
@@ -445,8 +435,7 @@ class Flow {
               'id_token token',
               'id_token',
               'token',
-            ].firstWhere((v) =>
-                client.issuer.metadata.responseTypesSupported.contains(v)),
+            ].firstWhere((v) => client.issuer.metadata.responseTypesSupported.contains(v)),
             client,
             state: state,
             scopes: [
@@ -477,8 +466,7 @@ class Flow {
       'client_id': client.clientId,
       'redirect_uri': redirectUri.toString(),
       'state': state
-    }..addAll(
-        responseType!.split(' ').contains('id_token') ? {'nonce': _nonce} : {});
+    }..addAll(responseType!.split(' ').contains('id_token') ? {'nonce': _nonce} : {});
 
     if (type == FlowType.proofKeyForCodeExchange) {
       v.addAll({
@@ -506,8 +494,7 @@ class Flow {
             'code': code,
             'redirect_uri': redirectUri.toString(),
             'client_id': client.clientId,
-            if (client.clientSecret != null)
-              'client_secret': client.clientSecret,
+            if (client.clientSecret != null) 'client_secret': client.clientSecret,
             'code_verifier': _proofKeyForCodeExchange['code_verifier']
           },
           client: client.httpClient);
@@ -522,8 +509,7 @@ class Flow {
           },
           client: client.httpClient);
     } else if (methods.contains('client_secret_basic')) {
-      var h =
-          base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
+      var h = base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
       json = await http.post(client.issuer.tokenEndpoint,
           headers: {'authorization': 'Basic $h'},
           body: {
@@ -541,8 +527,7 @@ class Flow {
   /// Login with username and password
   ///
   /// Only allowed for [Flow.password] flows.
-  Future<Credential> loginWithPassword(
-      {required String username, required String password}) async {
+  Future<Credential> loginWithPassword({required String username, required String password}) async {
     if (type != FlowType.password) {
       throw UnsupportedError('Flow is not password');
     }
@@ -566,12 +551,10 @@ class Flow {
       var code = response['jwt'];
       return Credential._(client, await _getToken(code), null);
     } else if (response.containsKey('code') &&
-        (type == FlowType.proofKeyForCodeExchange ||
-            client.clientSecret != null)) {
+        (type == FlowType.proofKeyForCodeExchange || client.clientSecret != null)) {
       var code = response['code'];
       return Credential._(client, await _getToken(code), null);
-    } else if (response.containsKey('access_token') ||
-        response.containsKey('id_token')) {
+    } else if (response.containsKey('access_token') || response.containsKey('id_token')) {
       return Credential._(client, TokenResponse.fromJson(response), _nonce);
     } else {
       return Credential._(client, TokenResponse.fromJson(response), _nonce);
@@ -582,8 +565,7 @@ class Flow {
 String _randomString(int length) {
   var r = Random.secure();
   var chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
-  return Iterable.generate(length, (_) => chars[r.nextInt(chars.length)])
-      .join();
+  return Iterable.generate(length, (_) => chars[r.nextInt(chars.length)]).join();
 }
 
 /// An exception thrown when a response is received in the openid error format.
@@ -614,16 +596,14 @@ class OpenIdException implements Exception {
         'The User Questioning Request is not valid. The request is missing a required parameter, includes an unsupported parameter value (other than grant type), repeats a parameter, includes multiple credentials, utilizes more than one mechanism for authenticating the client, or is otherwise malformed.',
     'no_suitable_method':
         'There is no Questioning Method suitable with the User Questioning Request. The OP can use this error code when it does not implement mechanisms suitable for the wished AMR or ACR.',
-    'timeout':
-        'The Questioned User did not answer in the allowed period of time.',
+    'timeout': 'The Questioned User did not answer in the allowed period of time.',
     'unauthorized':
         'The Client is not authorized to use the User Questioning API or did not send a valid Access Token.',
     'unknown_user':
         'The Questioned User mentioned in the user_id attribute of the User Questioning Request is unknown.',
     'unreachable_user':
         'The Questioned User mentioned in the User Questioning Request (either in the Access Token or in the user_id attribute) is unreachable. The OP can use this error when it does not have a reachability identifier (e.g. MSISDN) for the Question User or when the reachability identifier is not operational (e.g. unsubscribed MSISDN).',
-    'user_refused_to_answer':
-        'The Questioned User refused to make a statement to the question.',
+    'user_refused_to_answer': 'The Questioned User refused to make a statement to the question.',
     'interaction_required':
         'The Authorization Server requires End-User interaction of some form to proceed. This error MAY be returned when the prompt parameter value in the Authentication Request is none, but the Authentication Request cannot be completed without displaying a user interface for End-User interaction.',
     'login_required':
@@ -634,16 +614,11 @@ class OpenIdException implements Exception {
         'The Authorization Server requires End-User consent. This error MAY be returned when the prompt parameter value in the Authentication Request is none, but the Authentication Request cannot be completed without displaying a user interface for End-User consent.',
     'invalid_request_uri':
         'The request_uri in the Authorization Request returns an error or contains invalid data.',
-    'invalid_request_object':
-        'The request parameter contains an invalid Request Object.',
-    'request_not_supported':
-        'The OP does not support use of the request parameter',
-    'request_uri_not_supported':
-        'The OP does not support use of the request_uri parameter',
-    'registration_not_supported':
-        'The OP does not support use of the registration parameter',
-    'invalid_redirect_uri':
-        'The value of one or more redirect_uris is invalid.',
+    'invalid_request_object': 'The request parameter contains an invalid Request Object.',
+    'request_not_supported': 'The OP does not support use of the request parameter',
+    'request_uri_not_supported': 'The OP does not support use of the request_uri parameter',
+    'registration_not_supported': 'The OP does not support use of the registration parameter',
+    'invalid_redirect_uri': 'The value of one or more redirect_uris is invalid.',
     'invalid_client_metadata':
         'The value of one of the Client Metadata fields is invalid and the server has rejected this request. Note that an Authorization Server MAY choose to substitute a valid value for any requested parameter of a Client\'s Metadata.',
   };
@@ -651,8 +626,7 @@ class OpenIdException implements Exception {
   /// Thrown when trying to get a token, but the token endpoint is missing from
   /// the issuer metadata
   const OpenIdException.missingTokenEndpoint()
-      : this._('missing_token_endpoint',
-            'The issuer metadata does not contain a token endpoint.');
+      : this._('missing_token_endpoint', 'The issuer metadata does not contain a token endpoint.');
 
   const OpenIdException._(this.code, this.message) : uri = null;
 
