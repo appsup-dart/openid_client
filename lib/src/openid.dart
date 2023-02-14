@@ -174,6 +174,27 @@ class Client {
           null);
 }
 
+class DeviceCode {
+  final String deviceCode;
+  final int expiredIn;
+  final String userCode;
+  final String verificationUri;
+  final String verificationUriComplete;
+
+  DeviceCode(this.deviceCode, this.expiredIn, this.userCode, this.verificationUri,
+      this.verificationUriComplete);
+
+  factory DeviceCode.fromJson(Map<String, dynamic> json) {
+    return DeviceCode(
+      json['device_code'] as String,
+      json['expires_in'] as int,
+      json['user_code'] as String,
+      json['verification_uri'] as String,
+      json['verification_uri_complete'] as String,
+    );
+  }
+}
+
 class Credential {
   TokenResponse _token;
   final Client client;
@@ -321,6 +342,14 @@ extension _IssuerX on Issuer {
     var endpoint = metadata.tokenEndpoint;
     if (endpoint == null) {
       throw OpenIdException.missingTokenEndpoint();
+    }
+    return endpoint;
+  }
+
+  Uri get deviceAuthorizationEndpoint {
+    var endpoint = metadata.deviceAuthorizationEndpoint;
+    if (endpoint == null) {
+      throw OpenIdException.missingDeviceAuthorizationEndpoint();
     }
     return endpoint;
   }
@@ -531,16 +560,76 @@ class Flow {
     if (type != FlowType.password) {
       throw UnsupportedError('Flow is not password');
     }
-    var json = await http.post(client.issuer.tokenEndpoint,
+    var json = await http.post(
+      client.issuer.tokenEndpoint,
+      body: {
+        'grant_type': 'password',
+        'username': username,
+        'password': password,
+        'scope': scopes.join(' '),
+        'client_id': client.clientId,
+      },
+      client: client.httpClient,
+    );
+    return Credential._(client, TokenResponse.fromJson(json), null);
+  }
+
+  Future<DeviceCode> getDeviceCode(Function(Credential? credentials) callback) async {
+    if (type != FlowType.device) {
+      throw UnsupportedError('Flow is not password');
+    }
+    var json = await http.post(
+      client.issuer.deviceAuthorizationEndpoint,
+      body: {
+        'scope': scopes.join(' '),
+        'client_id': client.clientId,
+      },
+      client: client.httpClient,
+    );
+    var deviceCode = DeviceCode.fromJson(json);
+
+    _fetchDeviceToken(deviceCode, callback);
+
+    return deviceCode;
+  }
+
+  Future _fetchDeviceToken(
+    DeviceCode deviceCode,
+    Function(Credential? credentials) callback,
+  ) async {
+    if (deviceCode.expiredIn > 0) {
+      var json = (await http.post(
+        client.issuer.tokenEndpoint,
         body: {
-          'grant_type': 'password',
-          'username': username,
-          'password': password,
-          'scope': scopes.join(' '),
+          'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+          'device_code': deviceCode.deviceCode,
           'client_id': client.clientId,
         },
-        client: client.httpClient);
-    return Credential._(client, TokenResponse.fromJson(json), null);
+        client: client.httpClient,
+      )) as Map<String, dynamic>;
+
+      if (json['error'] != null && json['error'] == 'authorization_pending') {
+        var delay = 5;
+        await Future.delayed(
+            Duration(seconds: delay),
+            () => _fetchDeviceToken(
+                  DeviceCode(
+                    deviceCode.deviceCode,
+                    deviceCode.expiredIn - delay,
+                    deviceCode.userCode,
+                    deviceCode.verificationUri,
+                    deviceCode.verificationUriComplete,
+                  ),
+                  callback,
+                ));
+      } else if (json['access_token'] != null) {
+        callback(Credential._(client, TokenResponse.fromJson(json), null));
+      } else {
+        callback(null);
+      }
+    } else {
+      callback(null);
+    }
   }
 
   Future<Credential> callback(Map<String, String> response) async {
@@ -627,6 +716,12 @@ class OpenIdException implements Exception {
   /// the issuer metadata
   const OpenIdException.missingTokenEndpoint()
       : this._('missing_token_endpoint', 'The issuer metadata does not contain a token endpoint.');
+
+  /// Thrown when trying to get a token, but the token endpoint is missing from
+  /// the issuer metadata
+  const OpenIdException.missingDeviceAuthorizationEndpoint()
+      : this._('missing_device_authorization_endpoint',
+            'The issuer metadata does not contain a device authorization endpoint.');
 
   const OpenIdException._(this.code, this.message) : uri = null;
 
