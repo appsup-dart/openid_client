@@ -175,7 +175,33 @@ authenticate(Uri uri, String clientId, List<String> scopes) async {
 }
 ```
 
+### Usage example flutter - device code flow
 
+```dart
+
+    /// Define a callback to be called once user completes the flow
+    Function(Credential? credentials) callback = (credentials) => print(credentials.toString());
+    
+    /// Example parameters
+    var authServerUrl = "https://localhost";
+    var clientId = "clientid";
+    var clientSecret = "clientSecret";
+    var scopes = ["openid","email","profile"];
+
+    var _issuer = await Issuer.discover(Uri.parse(authServerUrl));
+    var _client = Client(
+        _issuer,
+        clientId,
+        clientSecret: clientSecret,
+    );
+    var _flow = Flow.device(
+        _client,
+        scopes: scopes,
+    );
+
+    /// this will get the device code to show to user and will call the callback when the user completed the flow
+    var deviceCode = await _flow.getDeviceCode((credentials) => callback(credentials));
+```
 
     
 ## Command line tool
