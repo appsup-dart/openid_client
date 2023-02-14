@@ -25,9 +25,7 @@ class Issuer {
 
   /// Creates an issuer from its metadata.
   Issuer(this.metadata, {this.claimsMap = const {}})
-      : _keyStore = metadata.jwksUri == null
-            ? JsonWebKeyStore()
-            : (JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri!));
+      : _keyStore = metadata.jwksUri == null ? JsonWebKeyStore() : (JsonWebKeyStore()..addKeySetUrl(metadata.jwksUri!));
 
   /// Url of the facebook issuer.
   ///
@@ -181,8 +179,7 @@ class DeviceCode {
   final String verificationUri;
   final String verificationUriComplete;
 
-  DeviceCode(this.deviceCode, this.expiredIn, this.userCode, this.verificationUri,
-      this.verificationUriComplete);
+  DeviceCode(this.deviceCode, this.expiredIn, this.userCode, this.verificationUri, this.verificationUriComplete);
 
   factory DeviceCode.fromJson(Map<String, dynamic> json) {
     return DeviceCode(
@@ -269,8 +266,7 @@ class Credential {
     if (jwksUri != null) {
       keyStore.addKeySetUrl(jwksUri);
     }
-    if (!await idToken.verify(keyStore,
-        allowedArguments: client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
+    if (!await idToken.verify(keyStore, allowedArguments: client.issuer.metadata.idTokenSigningAlgValuesSupported)) {
       yield JoseException('Could not verify token signature');
     }
 
@@ -280,8 +276,7 @@ class Credential {
             issuer: client.issuer.metadata.issuer,
             clientId: client.clientId,
             nonce: nonce)
-        .where((e) =>
-            validateExpiry || !(e is JoseException && e.message.startsWith('JWT expired.'))));
+        .where((e) => validateExpiry || !(e is JoseException && e.message.startsWith('JWT expired.'))));
   }
 
   String? get refreshToken => _token.refreshToken;
@@ -322,8 +317,7 @@ class Credential {
 
   Credential.fromJson(Map<String, dynamic> json, {http.Client? httpClient})
       : this._(
-            Client(Issuer(OpenIdProviderMetadata.fromJson((json['issuer'] as Map).cast())),
-                json['client_id'],
+            Client(Issuer(OpenIdProviderMetadata.fromJson((json['issuer'] as Map).cast())), json['client_id'],
                 clientSecret: json['client_secret'], httpClient: httpClient),
             TokenResponse.fromJson((json['token'] as Map).cast()),
             json['nonce']);
@@ -396,9 +390,8 @@ class Flow {
     }
 
     var verifier = codeVerifier ?? _randomString(50);
-    var challenge = base64Url
-        .encode(SHA256Digest().process(Uint8List.fromList(verifier.codeUnits)))
-        .replaceAll('=', '');
+    var challenge =
+        base64Url.encode(SHA256Digest().process(Uint8List.fromList(verifier.codeUnits))).replaceAll('=', '');
     _proofKeyForCodeExchange = {'code_verifier': verifier, 'code_challenge': challenge};
   }
 
@@ -480,8 +473,8 @@ class Flow {
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
 
-  Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
-      .replace(queryParameters: _authenticationUriParameters);
+  Uri get authenticationUri =>
+      client.issuer.metadata.authorizationEndpoint.replace(queryParameters: _authenticationUriParameters);
 
   late Map<String, String> _proofKeyForCodeExchange;
 
@@ -498,10 +491,7 @@ class Flow {
     }..addAll(responseType!.split(' ').contains('id_token') ? {'nonce': _nonce} : {});
 
     if (type == FlowType.proofKeyForCodeExchange) {
-      v.addAll({
-        'code_challenge_method': 'S256',
-        'code_challenge': _proofKeyForCodeExchange['code_challenge']
-      });
+      v.addAll({'code_challenge_method': 'S256', 'code_challenge': _proofKeyForCodeExchange['code_challenge']});
     }
     return v;
   }
@@ -541,11 +531,7 @@ class Flow {
       var h = base64.encode('${client.clientId}:${client.clientSecret}'.codeUnits);
       json = await http.post(client.issuer.tokenEndpoint,
           headers: {'authorization': 'Basic $h'},
-          body: {
-            'grant_type': 'authorization_code',
-            'code': code,
-            'redirect_uri': redirectUri.toString()
-          },
+          body: {'grant_type': 'authorization_code', 'code': code, 'redirect_uri': redirectUri.toString()},
           client: client.httpClient);
     } else {
       throw UnsupportedError('Unknown auth methods: $methods');
@@ -583,6 +569,7 @@ class Flow {
       body: {
         'scope': scopes.join(' '),
         'client_id': client.clientId,
+        'client_secret': client.clientSecret,
       },
       client: client.httpClient,
     );
@@ -598,34 +585,37 @@ class Flow {
     Function(Credential? credentials) callback,
   ) async {
     if (deviceCode.expiredIn > 0) {
-      var json = (await http.post(
-        client.issuer.tokenEndpoint,
-        body: {
-          'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
-          'device_code': deviceCode.deviceCode,
-          'client_id': client.clientId,
-        },
-        client: client.httpClient,
-      )) as Map<String, dynamic>;
+      try {
+        var json = (await http.post(
+          client.issuer.tokenEndpoint,
+          body: {
+            'grant_type': 'urn:ietf:params:oauth:grant-type:device_code',
+            'device_code': deviceCode.deviceCode,
+            'client_id': client.clientId,
+            'client_secret': client.clientSecret,
+          },
+          client: client.httpClient,
+        )) as Map<String, dynamic>;
 
-      if (json['error'] != null && json['error'] == 'authorization_pending') {
-        var delay = 5;
-        await Future.delayed(
-            Duration(seconds: delay),
-            () => _fetchDeviceToken(
-                  DeviceCode(
-                    deviceCode.deviceCode,
-                    deviceCode.expiredIn - delay,
-                    deviceCode.userCode,
-                    deviceCode.verificationUri,
-                    deviceCode.verificationUriComplete,
-                  ),
-                  callback,
-                ));
-      } else if (json['access_token'] != null) {
         callback(Credential._(client, TokenResponse.fromJson(json), null));
-      } else {
-        callback(null);
+      } on OpenIdException catch (e) {
+        if (e.code != null && e.code == 'authorization_pending') {
+          var delay = 5;
+          Future.delayed(
+              Duration(seconds: delay),
+              () => _fetchDeviceToken(
+                    DeviceCode(
+                      deviceCode.deviceCode,
+                      deviceCode.expiredIn - delay,
+                      deviceCode.userCode,
+                      deviceCode.verificationUri,
+                      deviceCode.verificationUriComplete,
+                    ),
+                    callback,
+                  ));
+        } else {
+          callback(null);
+        }
       }
     } else {
       callback(null);
@@ -701,8 +691,7 @@ class OpenIdException implements Exception {
         'The End-User is REQUIRED to select a session at the Authorization Server. The End-User MAY be authenticated at the Authorization Server with different associated accounts, but the End-User did not select a session. This error MAY be returned when the prompt parameter value in the Authentication Request is none, but the Authentication Request cannot be completed without displaying a user interface to prompt for a session to use.',
     'consent_required':
         'The Authorization Server requires End-User consent. This error MAY be returned when the prompt parameter value in the Authentication Request is none, but the Authentication Request cannot be completed without displaying a user interface for End-User consent.',
-    'invalid_request_uri':
-        'The request_uri in the Authorization Request returns an error or contains invalid data.',
+    'invalid_request_uri': 'The request_uri in the Authorization Request returns an error or contains invalid data.',
     'invalid_request_object': 'The request parameter contains an invalid Request Object.',
     'request_not_supported': 'The OP does not support use of the request parameter',
     'request_uri_not_supported': 'The OP does not support use of the request_uri parameter',
@@ -725,8 +714,7 @@ class OpenIdException implements Exception {
 
   const OpenIdException._(this.code, this.message) : uri = null;
 
-  OpenIdException(this.code, String? message, [this.uri])
-      : message = message ?? _defaultMessages[code!];
+  OpenIdException(this.code, String? message, [this.uri]) : message = message ?? _defaultMessages[code!];
 
   @override
   String toString() => 'OpenIdException($code): $message';
