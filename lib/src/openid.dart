@@ -499,6 +499,17 @@ class Flow {
             'assertion': code,
           },
           client: client.httpClient);
+    } else if (type == FlowType.authorizationCode) {
+      json = await http.post(client.issuer.tokenEndpoint,
+          body: {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': redirectUri.toString(),
+            'client_id': client.clientId,
+            if (client.clientSecret != null)
+              'client_secret': client.clientSecret,
+          },
+          client: client.httpClient);
     } else if (type == FlowType.proofKeyForCodeExchange) {
       json = await http.post(client.issuer.tokenEndpoint,
           body: {
@@ -564,6 +575,10 @@ class Flow {
     }
     if (type == FlowType.jwtBearer) {
       var code = response['jwt'];
+      return Credential._(client, await _getToken(code), null);
+    } else if (response.containsKey('code') &&
+        (type == FlowType.authorizationCode)) {
+      var code = response['code'];
       return Credential._(client, await _getToken(code), null);
     } else if (response.containsKey('code') &&
         (type == FlowType.proofKeyForCodeExchange ||
