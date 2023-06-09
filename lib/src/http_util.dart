@@ -38,7 +38,7 @@ dynamic _processResponse(http.Response response) {
       .value;
   var isJson = contentType.split(';').first == 'application/json';
 
-  var body = isJson ? json.decode(response.body) : response.body;
+  var body = isJson ? json.decode(utf8.decode(response.bodyBytes)) : response.body;
   if (body is Map && body['error'] is String) {
     throw OpenIdException(
         body['error'], body['error_description'], body['error_uri']);
