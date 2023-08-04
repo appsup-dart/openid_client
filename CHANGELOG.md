@@ -1,3 +1,9 @@
+# Changelog
+
+## 0.4.8
+
+- **FIX**: update openid_client_io to apply provided scopes to the authorization flow instead of default values
+
 ## 0.4.7
 
  - **FIX**: update contentSecurityPolicy of keycloak server to allow silent refresh with iframe. ([df9ef506](https://github.com/appsup-dart/openid_client/commit/df9ef506d0dd3e690f86d5fcc2efd073f0a51109))
@@ -16,11 +22,10 @@
  - **DOCS**: add funding info. ([e006d6de](https://github.com/appsup-dart/openid_client/commit/e006d6de4473360c78722f7ad6226ad6a5fc3c29))
  - **DOCS**: add example usage with keycloak server. ([a2939419](https://github.com/appsup-dart/openid_client/commit/a29394192789931ec44d6e6b64f16765325505e4))
 
-# Changelog
-
 ## 0.4.6
 
 - keep old refresh token when access token refreshed and no new refresh token received
+
 ## 0.4.5
 
 - handle tokens without expiration

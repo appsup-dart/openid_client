@@ -57,7 +57,7 @@ class Authenticator {
     Client client, {
     this.port = 3000,
     this.urlLancher = _runBrowser,
-    Iterable<String> scopes = const [],
+    List<String> scopes = const [],
     Uri? redirectUri,
     String? redirectMessage,
     String? prompt,
@@ -68,8 +68,9 @@ class Authenticator {
         ),
         redirectMessage = redirectMessage ?? 'You can now close this window',
         flow = redirectUri == null
-            ? Flow.authorizationCodeWithPKCE(client, prompt: prompt)
-            : Flow.authorizationCode(client, prompt: prompt)
+            ? Flow.authorizationCodeWithPKCE(client,
+                prompt: prompt, scopes: scopes)
+            : Flow.authorizationCode(client, prompt: prompt, scopes: scopes)
           ..scopes.addAll(scopes)
           ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 
