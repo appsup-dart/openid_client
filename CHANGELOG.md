@@ -1,6 +1,6 @@
 ## 0.4.8
 
-- Upgrade http dependency to 1.1.0
+- Upgrade http dependency
 
 ## 0.4.7
 
@@ -52,14 +52,14 @@
 
 ## 0.3.1
 
-- Fix not using Client's httpClient for getTokenResponse 
+- Fix not using Client's httpClient for getTokenResponse
 
 ## 0.3.0
 
 - Add http.Client arguments
 - *Breaking change*: `clientSecret` is now a named argument in `Client` constructor
 - Add optional `forceRefresh` argument to `getTokenResponse`
-- Add `fromJson` and `toJson` to `Credential` 
+- Add `fromJson` and `toJson` to `Credential`
 - Add `revoke` method to `Credential`
 - Add `generateLogoutUrl` method to `Credential`
 
@@ -71,7 +71,7 @@
 
 ## 0.2.4
 
-- Allow only signing algorithms specified in `id_token_signing_alg_values_supported` 
+- Allow only signing algorithms specified in `id_token_signing_alg_values_supported`
 parameter of issuer metadata
 
 ## 0.2.1
