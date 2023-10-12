@@ -409,14 +409,15 @@ class Flow {
       String? prompt,
       String? accessType,
       Uri? redirectUri,
-      Map<String, String>? headers,
+      Map<String, String>? additionalParameters,
       List<String> scopes = const ['openid', 'profile', 'email']})
       : this._(FlowType.authorizationCode, 'code', client,
             state: state,
             additionalParameters: {
               if (prompt != null) 'prompt': prompt,
               if (accessType != null) 'access_type': accessType,
-            }..addAll(headers ?? {}),
+              ...?additionalParameters
+            },
             scopes: scopes,
             redirectUri: redirectUri);
 
@@ -426,7 +427,7 @@ class Flow {
     String? prompt,
     List<String> scopes = const ['openid', 'profile', 'email'],
     String? codeVerifier,
-    Map<String, String>? headers,
+    Map<String, String>? additionalParameters,
   }) : this._(
           FlowType.proofKeyForCodeExchange,
           'code',
@@ -436,7 +437,8 @@ class Flow {
           codeVerifier: codeVerifier,
           additionalParameters: {
             if (prompt != null) 'prompt': prompt,
-          }..addAll(headers ?? {}),
+            ...?additionalParameters
+          },
         );
 
   Flow.implicit(Client client, {String? state, String? device, String? prompt})

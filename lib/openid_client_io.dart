@@ -61,7 +61,7 @@ class Authenticator {
     Uri? redirectUri,
     String? redirectMessage,
     String? prompt,
-    Map<String, String>? headers,
+    Map<String, String>? additionalParameters,
     this.htmlPage,
   })  : assert(
           htmlPage != null ? redirectMessage == null : true,
@@ -70,8 +70,9 @@ class Authenticator {
         redirectMessage = redirectMessage ?? 'You can now close this window',
         flow = redirectUri == null
             ? Flow.authorizationCodeWithPKCE(client,
-                prompt: prompt, headers: headers)
-            : Flow.authorizationCode(client, prompt: prompt, headers: headers)
+                prompt: prompt, additionalParameters: additionalParameters)
+            : Flow.authorizationCode(client,
+                prompt: prompt, additionalParameters: additionalParameters)
           ..scopes.addAll(scopes)
           ..redirectUri = redirectUri ?? Uri.parse('http://localhost:$port/');
 
