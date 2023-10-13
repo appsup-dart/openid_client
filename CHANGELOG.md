@@ -1,3 +1,9 @@
+## 0.4.8
+
+ - **FIX**: use proper authentication in revoke endpoint (issue [#83](https://github.com/appsup-dart/openid_client/issues/83)). ([09d49652](https://github.com/appsup-dart/openid_client/commit/09d49652760a9931977288f24f32caff51a1bc76))
+ - **FIX**: Exception thrown before redirecting on web ([#76](https://github.com/appsup-dart/openid_client/issues/76)). ([7c803048](https://github.com/appsup-dart/openid_client/commit/7c803048b04b48e4ac352999648fd1a09b30a207))
+ - **FEAT**: add support for additional parameters (pull request [#101](https://github.com/appsup-dart/openid_client/issues/101) from twklessor). ([dee2e3b5](https://github.com/appsup-dart/openid_client/commit/dee2e3b5b8ffef32bbb70b361f4edbccee96b8b6))
+
 ## 0.4.7+1
 
  - **REFACTOR**: upgrade http dependency (pull request [#94](https://github.com/appsup-dart/openid_client/issues/94) from wstrange). ([bb3fbac5](https://github.com/appsup-dart/openid_client/commit/bb3fbac5b187011f1230addc7c4bf8e3d070d0c0))
