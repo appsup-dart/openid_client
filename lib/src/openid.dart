@@ -206,6 +206,8 @@ class Credential {
   ///
   /// See https://tools.ietf.org/html/rfc7009
   Future<void> revoke() async {
+    var methods =
+        client.issuer.metadata.tokenEndpointAuthMethodsSupported ?? [];
     var uri = client.issuer.metadata.revocationEndpoint;
     if (uri == null) {
       throw UnsupportedError('Issuer does not support revocation endpoint.');
@@ -213,7 +215,24 @@ class Credential {
     var request = _token.refreshToken != null
         ? {'token': _token.refreshToken, 'token_type_hint': 'refresh_token'}
         : {'token': _token.accessToken, 'token_type_hint': 'access_token'};
-    await _post(uri, body: request);
+
+    if (methods.contains('client_secret_basic')) {
+      var h = base64
+          .encode('${client.clientId}:${client.clientSecret ?? ''}'.codeUnits);
+      await http.post(client.issuer.tokenEndpoint,
+          headers: {'authorization': 'Basic $h'},
+          body: request,
+          client: client.httpClient);
+    } else {
+      await http.post(uri,
+          body: {
+            ...request,
+            'client_id': client.clientId,
+            if (client.clientSecret != null)
+              'client_secret': client.clientSecret
+          },
+          client: client.httpClient);
+    }
   }
 
   /// Returns an url to redirect to for a Relying Party to request that an
