@@ -1,6 +1,3 @@
-## 0.4.8
-
-- Upgrade http dependency
 
 ## 0.4.7
 
