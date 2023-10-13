@@ -1,4 +1,5 @@
 
+
 ## 0.4.7
 
  - **FIX**: update contentSecurityPolicy of keycloak server to allow silent refresh with iframe. ([df9ef506](https://github.com/appsup-dart/openid_client/commit/df9ef506d0dd3e690f86d5fcc2efd073f0a51109))
