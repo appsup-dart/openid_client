@@ -1,3 +1,4 @@
+
 ## 0.4.7
 
  - **FIX**: update contentSecurityPolicy of keycloak server to allow silent refresh with iframe. ([df9ef506](https://github.com/appsup-dart/openid_client/commit/df9ef506d0dd3e690f86d5fcc2efd073f0a51109))
@@ -48,14 +49,14 @@
 
 ## 0.3.1
 
-- Fix not using Client's httpClient for getTokenResponse 
+- Fix not using Client's httpClient for getTokenResponse
 
 ## 0.3.0
 
 - Add http.Client arguments
 - *Breaking change*: `clientSecret` is now a named argument in `Client` constructor
 - Add optional `forceRefresh` argument to `getTokenResponse`
-- Add `fromJson` and `toJson` to `Credential` 
+- Add `fromJson` and `toJson` to `Credential`
 - Add `revoke` method to `Credential`
 - Add `generateLogoutUrl` method to `Credential`
 
@@ -67,7 +68,7 @@
 
 ## 0.2.4
 
-- Allow only signing algorithms specified in `id_token_signing_alg_values_supported` 
+- Allow only signing algorithms specified in `id_token_signing_alg_values_supported`
 parameter of issuer metadata
 
 ## 0.2.1
