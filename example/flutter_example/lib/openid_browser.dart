@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:openid_client/openid_client.dart';
 import 'package:openid_client/openid_client_browser.dart' as browser;
 
@@ -7,7 +9,7 @@ Future<Credential> authenticate(Client client,
 
   authenticator.authorize();
 
-  throw Exception('Will never reach here');
+  return Completer<Credential>().future;
 }
 
 Future<Credential?> getRedirectResult(Client client,
