@@ -1,3 +1,7 @@
+## 0.4.7+1
+
+ - **REFACTOR**: upgrade http dependency (pull request [#94](https://github.com/appsup-dart/openid_client/issues/94) from wstrange). ([bb3fbac5](https://github.com/appsup-dart/openid_client/commit/bb3fbac5b187011f1230addc7c4bf8e3d070d0c0))
+
 
 
 ## 0.4.7
