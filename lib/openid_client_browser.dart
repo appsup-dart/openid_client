@@ -1,6 +1,8 @@
-import 'openid_client.dart';
-import 'dart:html' hide Credential, Client;
 import 'dart:async';
+import 'dart:html' hide Credential, Client;
+
+import 'openid_client.dart';
+
 export 'openid_client.dart';
 
 /// A wrapper around [Flow] that handles the browser-specific parts of
@@ -35,11 +37,15 @@ class Authenticator {
   Authenticator._(this.flow) : credential = _credentialFromUri(flow);
 
   Authenticator(Client client,
-      {Iterable<String> scopes = const [], String? device, String? prompt})
-      : this._(Flow.implicit(client,
-            device: device,
+      {Iterable<String> scopes = const [],
+      String? prompt,
+      String? codeVerifier,
+      Map<String, String>? additionalParameters})
+      : this._(Flow.authorizationCodeWithPKCE(client,
             state: window.localStorage['openid_client:state'],
-            prompt: prompt)
+            prompt: prompt,
+            codeVerifier: codeVerifier,
+            additionalParameters: additionalParameters)
           ..scopes.addAll(scopes)
           ..redirectUri = Uri.parse(window.location.href).removeFragment());
 
