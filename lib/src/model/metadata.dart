@@ -15,7 +15,8 @@ class OpenIdProviderMetadata extends JsonObject {
   Uri? get userinfoEndpoint => getTyped('userinfo_endpoint');
 
   /// URL of the OP's Device Authorization Endpoint
-  Uri? get deviceAuthorizationEndpoint => getTyped('device_authorization_endpoint');
+  Uri? get deviceAuthorizationEndpoint =>
+      getTyped('device_authorization_endpoint');
 
   /// URL of the OP's JSON Web Key Set document.
   ///
@@ -29,13 +30,16 @@ class OpenIdProviderMetadata extends JsonObject {
   List<String>? get scopesSupported => getTypedList('scopes_supported');
 
   /// A list of the OAuth 2.0 `response_type` values that this OP supports.
-  List<String> get responseTypesSupported => getTypedList('response_types_supported')!;
+  List<String> get responseTypesSupported =>
+      getTypedList('response_types_supported')!;
 
   /// A list of the OAuth 2.0 `response_mode` values that this OP supports.
-  List<String>? get responseModesSupported => getTypedList('response_modes_supported');
+  List<String>? get responseModesSupported =>
+      getTypedList('response_modes_supported');
 
   /// A list of the OAuth 2.0 Grant Type values that this OP supports.
-  List<String>? get grantTypesSupported => getTypedList('grant_types_supported');
+  List<String>? get grantTypesSupported =>
+      getTypedList('grant_types_supported');
 
   /// A list of the Authentication Context Class References that this OP supports.
   List<String>? get acrValuesSupported => getTypedList('acr_values_supported');
@@ -43,7 +47,8 @@ class OpenIdProviderMetadata extends JsonObject {
   /// A list of the Subject Identifier types that this OP supports.
   ///
   /// Valid types include `pairwise` and `public`.
-  List<String> get subjectTypesSupported => getTypedList('subject_types_supported')!;
+  List<String> get subjectTypesSupported =>
+      getTypedList('subject_types_supported')!;
 
   /// A list of the JWS signing algorithms (`alg` values) supported by the OP for
   /// the ID Token to encode the Claims in a JWT.
@@ -121,13 +126,15 @@ class OpenIdProviderMetadata extends JsonObject {
       getTypedList('token_endpoint_auth_signing_alg_values_supported');
 
   /// A list of the display parameter values that the OpenID Provider supports.
-  List<String>? get displayValuesSupported => getTypedList('display_values_supported');
+  List<String>? get displayValuesSupported =>
+      getTypedList('display_values_supported');
 
   /// A list of the Claim Types that the OpenID Provider supports.
   ///
   /// Values defined by the specification are `normal`, `aggregated`, and
   /// `distributed`. If omitted, the implementation supports only `normal` Claims.
-  List<String>? get claimTypesSupported => getTypedList('claim_types_supported');
+  List<String>? get claimTypesSupported =>
+      getTypedList('claim_types_supported');
 
   /// A list of the Claim Names of the Claims that the OpenID Provider MAY be
   /// able to supply values for.
@@ -143,23 +150,28 @@ class OpenIdProviderMetadata extends JsonObject {
   /// Languages and scripts supported for values in Claims being returned.
   ///
   /// Not all languages and scripts are necessarily supported for all Claim values.
-  List<String>? get claimsLocalesSupported => getTypedList('claims_locales_supported');
+  List<String>? get claimsLocalesSupported =>
+      getTypedList('claims_locales_supported');
 
   /// Languages and scripts supported for the user interface.
   List<String>? get uiLocalesSupported => getTypedList('ui_locales_supported');
 
   /// `true` when the OP supports use of the `claims` parameter.
-  bool get claimsParameterSupported => this['claims_parameter_supported'] ?? false;
+  bool get claimsParameterSupported =>
+      this['claims_parameter_supported'] ?? false;
 
   /// `true` when the OP supports use of the `request` parameter.
-  bool get requestParameterSupported => this['request_parameter_supported'] ?? false;
+  bool get requestParameterSupported =>
+      this['request_parameter_supported'] ?? false;
 
   /// `true` when the OP supports use of the `request_uri` parameter.
-  bool get requestUriParameterSupported => this['request_uri_parameter_supported'] ?? true;
+  bool get requestUriParameterSupported =>
+      this['request_uri_parameter_supported'] ?? true;
 
   /// `true` when the OP requires any `request_uri` values used to be
   /// pre-registered using the request_uris registration parameter.
-  bool get requireRequestUriRegistration => this['require_request_uri_registration'] ?? false;
+  bool get requireRequestUriRegistration =>
+      this['require_request_uri_registration'] ?? false;
 
   /// URL that the OpenID Provider provides to the person registering the Client
   /// to read about the OP's requirements on how the Relying Party can use the
