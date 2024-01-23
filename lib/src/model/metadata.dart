@@ -14,6 +14,10 @@ class OpenIdProviderMetadata extends JsonObject {
   /// URL of the OP's UserInfo Endpoint.
   Uri? get userinfoEndpoint => getTyped('userinfo_endpoint');
 
+  /// URL of the OP's Device Authorization Endpoint
+  Uri? get deviceAuthorizationEndpoint =>
+      getTyped('device_authorization_endpoint');
+
   /// URL of the OP's JSON Web Key Set document.
   ///
   /// This contains the signing key(s) the RP uses to validate signatures from the OP.
