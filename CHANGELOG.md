@@ -1,3 +1,15 @@
+## 0.4.8
+
+ - **FIX**: use proper authentication in revoke endpoint (issue [#83](https://github.com/appsup-dart/openid_client/issues/83)). ([09d49652](https://github.com/appsup-dart/openid_client/commit/09d49652760a9931977288f24f32caff51a1bc76))
+ - **FIX**: Exception thrown before redirecting on web ([#76](https://github.com/appsup-dart/openid_client/issues/76)). ([7c803048](https://github.com/appsup-dart/openid_client/commit/7c803048b04b48e4ac352999648fd1a09b30a207))
+ - **FEAT**: add support for additional parameters (pull request [#101](https://github.com/appsup-dart/openid_client/issues/101) from twklessor). ([dee2e3b5](https://github.com/appsup-dart/openid_client/commit/dee2e3b5b8ffef32bbb70b361f4edbccee96b8b6))
+
+## 0.4.7+1
+
+ - **REFACTOR**: upgrade http dependency (pull request [#94](https://github.com/appsup-dart/openid_client/issues/94) from wstrange). ([bb3fbac5](https://github.com/appsup-dart/openid_client/commit/bb3fbac5b187011f1230addc7c4bf8e3d070d0c0))
+
+
+
 ## 0.4.7
 
  - **FIX**: update contentSecurityPolicy of keycloak server to allow silent refresh with iframe. ([df9ef506](https://github.com/appsup-dart/openid_client/commit/df9ef506d0dd3e690f86d5fcc2efd073f0a51109))
@@ -48,14 +60,14 @@
 
 ## 0.3.1
 
-- Fix not using Client's httpClient for getTokenResponse 
+- Fix not using Client's httpClient for getTokenResponse
 
 ## 0.3.0
 
 - Add http.Client arguments
 - *Breaking change*: `clientSecret` is now a named argument in `Client` constructor
 - Add optional `forceRefresh` argument to `getTokenResponse`
-- Add `fromJson` and `toJson` to `Credential` 
+- Add `fromJson` and `toJson` to `Credential`
 - Add `revoke` method to `Credential`
 - Add `generateLogoutUrl` method to `Credential`
 
@@ -67,7 +79,7 @@
 
 ## 0.2.4
 
-- Allow only signing algorithms specified in `id_token_signing_alg_values_supported` 
+- Allow only signing algorithms specified in `id_token_signing_alg_values_supported`
 parameter of issuer metadata
 
 ## 0.2.1
