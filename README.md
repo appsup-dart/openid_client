@@ -13,15 +13,13 @@ It currently supports these features:
 * parsing and validating id tokens
 * basic tools for implementing implicit and authorization code flow
 * authentication for command line tools
-
+* RP initiated logout
 
 Besides authentication providers that support OpenID Connect, this 
 library can also work with other authentication providers supporting
 oauth2, like Facebook. For these providers, some features (e.g. discovery and id tokens) 
 will not work. You should define the metadata for those providers manually, except
 for Facebook, which is predefined in the library.
-
-
 
 ## Usage
 
