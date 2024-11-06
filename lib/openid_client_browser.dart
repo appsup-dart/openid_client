@@ -1,5 +1,5 @@
 import 'openid_client.dart';
-import 'package:universal_html/html.dart';
+import 'package:universal_html/html.dart' hide Credential, Client;
 import 'dart:async';
 export 'openid_client.dart';
 
