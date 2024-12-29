@@ -1,6 +1,6 @@
 name: openid_client
 description: Library for working with OpenID Connect and implementing clients.
-version: 0.4.8
+version: 0.4.9
 homepage: https://github.com/appsup-dart/openid_client
 funding:
  - https://github.com/sponsors/rbellens

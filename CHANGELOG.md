@@ -1,3 +1,8 @@
+## 0.4.9
+
+ - **REFACTOR**: migrate from 'dart:html' to 'package:web'. ([9fd34b02](https://github.com/appsup-dart/openid_client/commit/9fd34b028721edd2b303eadd555782d6f38be39e))
+ - **FEAT**: client credentials flow. ([86425c1d](https://github.com/appsup-dart/openid_client/commit/86425c1d07cdfb17af92688c801f7c546ee6d582))
+
 ## 0.4.8
 
  - **FIX**: use proper authentication in revoke endpoint (issue [#83](https://github.com/appsup-dart/openid_client/issues/83)). ([09d49652](https://github.com/appsup-dart/openid_client/commit/09d49652760a9931977288f24f32caff51a1bc76))
