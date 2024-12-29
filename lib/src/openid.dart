@@ -305,10 +305,17 @@ class Credential {
       return _token;
     }
 
+    var grantType = _token.refreshToken != null
+        ? 'refresh_token'
+        : 'client_credentials'; // TODO: make this selection more explicit
+
     var json = await http.post(client.issuer.tokenEndpoint,
         body: {
-          'grant_type': 'refresh_token',
-          'refresh_token': _token.refreshToken,
+          'grant_type': grantType,
+          if (grantType == 'refresh_token')
+            'refresh_token': _token.refreshToken,
+          if (grantType == 'client_credentials')
+            'scope': _token.toJson()['scope'],
           'client_id': client.clientId,
           if (client.clientSecret != null) 'client_secret': client.clientSecret
         },
@@ -366,6 +373,7 @@ enum FlowType {
   proofKeyForCodeExchange,
   jwtBearer,
   password,
+  clientCredentials,
 }
 
 class Flow {
@@ -485,6 +493,9 @@ class Flow {
 
   Flow.jwtBearer(Client client) : this._(FlowType.jwtBearer, null, client);
 
+  Flow.clientCredentials(Client client, {List<String> scopes = const []})
+      : this._(FlowType.clientCredentials, 'token', client, scopes: scopes);
+
   Uri get authenticationUri => client.issuer.metadata.authorizationEndpoint
       .replace(queryParameters: _authenticationUriParameters);
 
@@ -534,6 +545,16 @@ class Flow {
             'code_verifier': _proofKeyForCodeExchange['code_verifier']
           },
           client: client.httpClient);
+    } else if (type == FlowType.clientCredentials) {
+      json = await http.post(client.issuer.tokenEndpoint,
+          body: {
+            'grant_type': 'client_credentials',
+            'client_id': client.clientId,
+            if (client.clientSecret != null)
+              'client_secret': client.clientSecret,
+            'scope': scopes.join(' ')
+          },
+          client: client.httpClient);
     } else if (methods!.contains('client_secret_post')) {
       json = await http.post(client.issuer.tokenEndpoint,
           body: {
@@ -576,6 +597,21 @@ class Flow {
           'password': password,
           'scope': scopes.join(' '),
           'client_id': client.clientId,
+        },
+        client: client.httpClient);
+    return Credential._(client, TokenResponse.fromJson(json), null);
+  }
+
+  Future<Credential> loginWithClientCredentials() async {
+    if (type != FlowType.clientCredentials) {
+      throw UnsupportedError('Flow is not clientCredentials');
+    }
+    var json = await http.post(client.issuer.tokenEndpoint,
+        body: {
+          'grant_type': 'client_credentials',
+          'client_id': client.clientId,
+          if (client.clientSecret != null) 'client_secret': client.clientSecret,
+          'scope': scopes.join(' ')
         },
         client: client.httpClient);
     return Credential._(client, TokenResponse.fromJson(json), null);
