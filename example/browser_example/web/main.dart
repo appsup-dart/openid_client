@@ -1,4 +1,4 @@
-import 'dart:html';
+import 'package:web/web.dart' hide Client;
 
 import 'package:openid_client/openid_client_browser.dart';
 
@@ -30,7 +30,8 @@ Future<void> main() async {
     }
 
     await refresh();
-    document.querySelector('#when-logged-in')!.style.display = 'block';
+    (document.querySelector('#when-logged-in') as HTMLElement).style.display =
+        'block';
     document.querySelector('#logout')!.onClick.listen((_) async {
       authenticator.logout();
     });
@@ -39,7 +40,8 @@ Future<void> main() async {
       await refresh();
     });
   } else {
-    document.querySelector('#when-logged-out')!.style.display = 'block';
+    (document.querySelector('#when-logged-out') as HTMLElement).style.display =
+        'block';
     document.querySelector('#login')!.onClick.listen((_) async {
       authenticator.authorize();
     });
