@@ -262,10 +262,6 @@ class Credential {
     return http.get(uri, client: createHttpClient());
   }
 
-  Future _post(uri, {dynamic body}) async {
-    return http.post(uri, client: createHttpClient(), body: body);
-  }
-
   IdToken get idToken => _token.idToken;
 
   Stream<Exception> validateToken(

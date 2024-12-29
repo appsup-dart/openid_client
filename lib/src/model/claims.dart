@@ -1,4 +1,4 @@
-part of openid.model;
+part of '../model.dart';
 
 abstract class UserInfo implements JsonObject {
   /// Identifier for the End-User at the Issuer.

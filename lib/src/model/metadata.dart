@@ -1,4 +1,4 @@
-part of openid.model;
+part of '../model.dart';
 
 /// OpenID Provider Metadata
 class OpenIdProviderMetadata extends JsonObject {

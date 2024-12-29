@@ -1,4 +1,4 @@
-part of openid.model;
+part of '../model.dart';
 
 class TokenResponse extends JsonObject {
   /// OAuth 2.0 Access Token

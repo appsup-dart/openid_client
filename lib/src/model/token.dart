@@ -1,4 +1,4 @@
-part of openid.model;
+part of '../model.dart';
 
 class IdToken extends JsonWebToken {
   IdToken.unverified(String serialization) : super.unverified(serialization);
