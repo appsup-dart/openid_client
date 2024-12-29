@@ -7,7 +7,7 @@ This folder contains 3 examples of using the `openid_client` package with a `key
 
 ## The keycloak server
 
-The examples use a keycloak server running on `http://localhost:8080/auth/realms/myrealm`. 
+The examples use a keycloak server running on `http://localhost:8080/realms/myrealm`. 
 
 The keycloak server can be started by using the `docker-compose.yml` file in the `example/keycloak-docker` folder:
 
