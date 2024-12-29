@@ -20,6 +20,7 @@ dependencies:
 dev_dependencies:
   test: ^1.16.5
   lints: ^2.0.1
+  melos: ^6.0.0
 
 executables:
   openid_client: openid_client
