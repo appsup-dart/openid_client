@@ -1,6 +1,6 @@
 part of '../model.dart';
 
-abstract class UserInfo implements JsonObject {
+mixin UserInfoMixin implements JsonObject {
   /// Identifier for the End-User at the Issuer.
   String get subject => this['sub'];
 
@@ -90,12 +90,14 @@ abstract class UserInfo implements JsonObject {
   DateTime? get updatedAt => this['updated_at'] == null
       ? null
       : DateTime.fromMillisecondsSinceEpoch(this['updated_at'] * 1000);
+}
 
+abstract class UserInfo with UserInfoMixin {
   factory UserInfo.fromJson(Map<String, dynamic> json) = _UserInfoImpl.fromJson;
 }
 
-class _UserInfoImpl extends JsonObject with UserInfo {
-  _UserInfoImpl.fromJson(Map<String, dynamic> json) : super.from(json);
+class _UserInfoImpl extends JsonObject with UserInfoMixin implements UserInfo {
+  _UserInfoImpl.fromJson(Map<String, dynamic> super.json) : super.from();
 }
 
 class Address extends JsonObject {
@@ -117,10 +119,12 @@ class Address extends JsonObject {
   /// Country name component.
   String? get country => this['country'];
 
-  Address.fromJson(Map<String, dynamic> json) : super.from(json);
+  Address.fromJson(Map<String, dynamic> super.json) : super.from();
 }
 
-class OpenIdClaims extends JsonWebTokenClaims with UserInfo {
+class OpenIdClaims extends JsonWebTokenClaims
+    with UserInfoMixin
+    implements UserInfo {
   /// Time when the End-User authentication occurred.
   DateTime? get authTime => this['auth_time'] == null
       ? null
