@@ -1,3 +1,8 @@
+## 0.4.9+1
+
+ - **REFACTOR**: set min sdk to 3.0.0. ([754fa497](https://github.com/appsup-dart/openid_client/commit/754fa49782a2d0f9c51251f73d2270e44db7262d))
+ - **REFACTOR**: support for pointycastle ^4.0.0. ([64480c07](https://github.com/appsup-dart/openid_client/commit/64480c073945767d0ab8580bfa77b49d4cf08ab0))
+
 ## 0.4.9
 
  - **REFACTOR**: migrate from 'dart:html' to 'package:web'. ([9fd34b02](https://github.com/appsup-dart/openid_client/commit/9fd34b028721edd2b303eadd555782d6f38be39e))
