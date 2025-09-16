@@ -1,3 +1,5 @@
+[![Ceasefire Now](https://badge.techforpalestine.org/default)](https://techforpalestine.org/learn-more)
+
 [:heart: sponsor](https://github.com/sponsors/rbellens)
 
 
