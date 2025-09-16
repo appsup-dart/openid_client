@@ -296,7 +296,7 @@ abstract class CommandWithRestArguments<T> extends Command<T> {
   }
 }
 
-String toJson(v) => const JsonEncoder.withIndent(' ').convert(v);
+String toJson(dynamic v) => const JsonEncoder.withIndent(' ').convert(v);
 
 File get _configFile {
   if (Platform.isWindows) {

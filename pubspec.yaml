@@ -20,7 +20,7 @@ dependencies:
 
 dev_dependencies:
   test: ^1.16.5
-  lints: ^5.0.0
+  lints: ^6.0.0
   melos: ^6.0.0
 
 executables:

@@ -23,9 +23,9 @@ Future<void> main() async {
   if (credential != null) {
     Future<void> refresh() async {
       var userData = await credential!.getUserInfo();
-      document.querySelector('#name')!.text = userData.name!;
-      document.querySelector('#email')!.text = userData.email!;
-      document.querySelector('#issuedAt')!.text =
+      document.querySelector('#name')!.textContent = userData.name!;
+      document.querySelector('#email')!.textContent = userData.email!;
+      document.querySelector('#issuedAt')!.textContent =
           credential!.idToken.claims.issuedAt.toIso8601String();
     }
 

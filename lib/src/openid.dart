@@ -258,7 +258,7 @@ class Credential {
       http.AuthorizedClient(
           baseClient ?? client.httpClient ?? http.Client(), this);
 
-  Future _get(uri) async {
+  Future _get(Uri uri) async {
     return http.get(uri, client: createHttpClient());
   }
 

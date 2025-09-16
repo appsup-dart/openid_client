@@ -40,14 +40,14 @@ class Authenticator {
       {Iterable<String> scopes = const [], String? device, String? prompt})
       : this._(Flow.implicit(client,
             device: device,
-            state: window.localStorage['openid_client:state'],
+            state: window.localStorage.getItem('openid_client:state'),
             prompt: prompt)
           ..scopes.addAll(scopes)
           ..redirectUri = Uri.parse(window.location.href).removeFragment());
 
   /// Redirects the browser to the authentication URI.
   void authorize() {
-    window.localStorage['openid_client:state'] = flow.state;
+    window.localStorage.setItem('openid_client:state', flow.state);
     window.location.href = flow.authenticationUri.toString();
   }
 
@@ -93,7 +93,7 @@ class Authenticator {
       {Duration timeout = const Duration(seconds: 20)}) async {
     var iframe = HTMLIFrameElement();
     var url = flow.authenticationUri;
-    window.localStorage['openid_client:state'] = flow.state;
+    window.localStorage.setItem('openid_client:state', flow.state);
     iframe.src = url.replace(queryParameters: {
       ...url.queryParameters,
       'prompt': 'none',
