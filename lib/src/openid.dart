@@ -301,15 +301,18 @@ class Credential {
       return _getTokenResponseCompleter!.future;
     }
 
+    // Check if token is still valid BEFORE creating completer to avoid
+    // leaving an incomplete completer that concurrent calls would wait on
+    if (!forceRefresh &&
+        _token.accessToken != null &&
+        (_token.expiresAt == null ||
+            _token.expiresAt!.isAfter(DateTime.now()))) {
+      return _token;
+    }
+
     _getTokenResponseCompleter = Completer();
 
     try {
-      if (!forceRefresh &&
-          _token.accessToken != null &&
-          (_token.expiresAt == null ||
-              _token.expiresAt!.isAfter(DateTime.now()))) {
-        return _token;
-      }
 
       var grantType = _token.refreshToken != null
           ? 'refresh_token'
