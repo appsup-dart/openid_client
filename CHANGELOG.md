@@ -1,3 +1,8 @@
+## 0.4.9+2
+
+ - **FIX**: Move early return check before creating completer to prevent incomplete completer bug. ([793bffa3](https://github.com/appsup-dart/openid_client/commit/793bffa3387ed21650d9ea3d1916ee4f79b20121))
+ - **FIX**: Prevent race condition in Credential.getTokenResponse. ([e38d76a9](https://github.com/appsup-dart/openid_client/commit/e38d76a944a9e07a488e9d3cba5876bc120699d1))
+
 ## 0.4.9+1
 
  - **REFACTOR**: set min sdk to 3.0.0. ([754fa497](https://github.com/appsup-dart/openid_client/commit/754fa49782a2d0f9c51251f73d2270e44db7262d))
