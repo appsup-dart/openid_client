@@ -416,7 +416,7 @@ class Flow {
       List<String> scopes = const ['openid', 'profile', 'email']})
       : state = state ?? _randomString(20),
         _additionalParameters = {...?additionalParameters},
-        redirectUri = redirectUri ?? Uri.parse('http://localhost') {
+        redirectUri = redirectUri ?? Uri.parse('http://localhost:8081') {
     var supportedScopes = client.issuer.metadata.scopesSupported ?? [];
     for (var s in scopes) {
       if (supportedScopes.contains(s)) {
