@@ -1,3 +1,9 @@
+## 0.4.10
+
+ - **FIX**: use revoke uri instead of token uri (pr [#106](https://github.com/appsup-dart/openid_client/issues/106) of bakiller). ([5c40d924](https://github.com/appsup-dart/openid_client/commit/5c40d924af044048dc18533508c8efd170577bf8))
+ - **FIX**: default redirectUri with port 80 does not work on linux (pr [#117](https://github.com/appsup-dart/openid_client/issues/117) of timalenustmf). ([97a17741](https://github.com/appsup-dart/openid_client/commit/97a1774121dcc0f1c10c6f0347573c2dfa2ac5c4))
+ - **FEAT**: adds implementation for RP initiated logout (pr [#112](https://github.com/appsup-dart/openid_client/issues/112) of svsk417). ([59ee7128](https://github.com/appsup-dart/openid_client/commit/59ee71287f17a7105fbc1ec0f7bc58f7a59f95b9))
+
 ## 0.4.9+2
 
  - **FIX**: Move early return check before creating completer to prevent incomplete completer bug. ([793bffa3](https://github.com/appsup-dart/openid_client/commit/793bffa3387ed21650d9ea3d1916ee4f79b20121))
