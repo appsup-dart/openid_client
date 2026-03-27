@@ -1,10 +1,13 @@
 library openid_client.io;
 
 import 'dart:async';
-import 'dart:io';
 import 'dart:developer';
+import 'dart:io';
+
+import 'package:http/http.dart' as http;
 
 import 'openid_client.dart';
+import 'src/http_util.dart' as http_util;
 
 export 'openid_client.dart';
 
@@ -157,6 +160,37 @@ class Authenticator {
       }
       _requestServers.clear();
     }
+  }
+
+  /// Performs OpenID connect RP-Initiated Logout according to specification
+  /// See: https://openid.net/specs/openid-connect-rpinitiated-1_0.html#RPLogout
+  FutureOr<void> logout({
+    required Uri endSessionEndpoint,
+    Map<String, String>? headers,
+    http.Client? client,
+    String? idTokenHint,
+    String? logoutHint,
+    String? clientId,
+    String? postLogoutRedirectUri,
+    String? state,
+    String? uiLocales,
+  }) async {
+    headers ??= <String, String>{};
+    final body = <String, String>{
+      if (idTokenHint != null) 'id_token_hint': idTokenHint,
+      if (logoutHint != null) 'logout_hint': logoutHint,
+      if (clientId != null) 'client_id': clientId,
+      if (postLogoutRedirectUri != null)
+        'post_logout_redirect_uri': postLogoutRedirectUri,
+      if (state != null) 'state': state,
+      if (uiLocales != null) 'ui_locales': uiLocales,
+    };
+    await http_util.post(
+      endSessionEndpoint,
+      headers: headers,
+      body: body,
+      client: client,
+    );
   }
 }
 
