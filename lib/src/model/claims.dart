@@ -158,7 +158,7 @@ class OpenIdClaims extends JsonWebTokenClaims
   @override
   DateTime get issuedAt => super.issuedAt!;
 
-  OpenIdClaims.fromJson(Map<String, dynamic> json) : super.fromJson(json);
+  OpenIdClaims.fromJson(Map<String, dynamic> super.json) : super.fromJson();
 
   @override
   Iterable<Exception> validate(

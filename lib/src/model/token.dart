@@ -1,7 +1,7 @@
 part of '../model.dart';
 
 class IdToken extends JsonWebToken {
-  IdToken.unverified(String serialization) : super.unverified(serialization);
+  IdToken.unverified(super.serialization) : super.unverified();
 
   @override
   OpenIdClaims get claims => OpenIdClaims.fromJson(super.claims.toJson());

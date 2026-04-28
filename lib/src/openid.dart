@@ -1,5 +1,3 @@
-library openid_client.openid;
-
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
