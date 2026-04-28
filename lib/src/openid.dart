@@ -290,19 +290,17 @@ class Credential {
 
   String? get refreshToken => _token.refreshToken;
 
-  Completer<TokenResponse>? _getTokenResponseCompleter;
+  Future<TokenResponse>? _getTokenResponseFuture;
 
   Future<TokenResponse> getTokenResponse([bool forceRefresh = false]) async {
     if (_token.accessToken == null && _token.refreshToken == null) {
       return _token;
     }
 
-    if (_getTokenResponseCompleter != null) {
-      return _getTokenResponseCompleter!.future;
+    if (_getTokenResponseFuture != null) {
+      return _getTokenResponseFuture!;
     }
 
-    // Check if token is still valid BEFORE creating completer to avoid
-    // leaving an incomplete completer that concurrent calls would wait on
     if (!forceRefresh &&
         _token.accessToken != null &&
         (_token.expiresAt == null ||
@@ -310,36 +308,31 @@ class Credential {
       return _token;
     }
 
-    _getTokenResponseCompleter = Completer();
+    return _getTokenResponseFuture = Future<TokenResponse>(() async {
+      try {
+        var grantType = _token.refreshToken != null
+            ? 'refresh_token'
+            : 'client_credentials'; // TODO: make this selection more explicit
 
-    try {
+        var json = await http.post(client.issuer.tokenEndpoint,
+            body: {
+              'grant_type': grantType,
+              if (grantType == 'refresh_token')
+                'refresh_token': _token.refreshToken,
+              if (grantType == 'client_credentials')
+                'scope': _token.toJson()['scope'],
+              'client_id': client.clientId,
+              if (client.clientSecret != null)
+                'client_secret': client.clientSecret
+            },
+            client: client.httpClient);
 
-      var grantType = _token.refreshToken != null
-          ? 'refresh_token'
-          : 'client_credentials'; // TODO: make this selection more explicit
-
-      var json = await http.post(client.issuer.tokenEndpoint,
-          body: {
-            'grant_type': grantType,
-            if (grantType == 'refresh_token')
-              'refresh_token': _token.refreshToken,
-            if (grantType == 'client_credentials')
-              'scope': _token.toJson()['scope'],
-            'client_id': client.clientId,
-            if (client.clientSecret != null)
-              'client_secret': client.clientSecret
-          },
-          client: client.httpClient);
-
-      updateToken(json);
-      _getTokenResponseCompleter!.complete(_token);
-      return _token;
-    } catch (error) {
-      _getTokenResponseCompleter!.completeError(error);
-      rethrow;
-    } finally {
-      _getTokenResponseCompleter = null;
-    }
+        updateToken(json);
+        return _token;
+      } finally {
+        _getTokenResponseFuture = null;
+      }
+    });
   }
 
   /// Updates the token with the given [json] and notifies all listeners

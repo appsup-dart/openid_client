@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import 'dart:io';
 import 'dart:convert';
 import 'dart:async';
+import 'package:http/http.dart' as http;
 
 File _file(String path) {
   return File('${Directory.current.path.endsWith('test') ? '' : 'test/'}$path');
@@ -14,6 +15,30 @@ File _file(String path) {
 
 Future<dynamic> _readJson(String path) async =>
     json.decode(await _file(path).readAsString());
+
+class _CountingClient extends http.BaseClient {
+  final FutureOr<http.StreamedResponse> Function(http.BaseRequest request) _send;
+
+  int sendCount = 0;
+
+  _CountingClient(this._send);
+
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    sendCount++;
+    return await _send(request);
+  }
+}
+
+http.StreamedResponse _jsonResponse(
+    http.BaseRequest request, int status, Map<String, dynamic> jsonBody) {
+  var body = utf8.encode(json.encode(jsonBody));
+  return http.StreamedResponse(Stream.value(body), status,
+      request: request,
+      headers: const {
+        'content-type': 'application/json',
+      });
+}
 
 void main() {
   Logger.root.level = Level.ALL;
@@ -53,5 +78,89 @@ void main() {
       expect(await credential.validateToken(validateExpiry: false).toList(),
           isEmpty);
     }, onPlatform: {'browser': Skip()});
+  });
+
+  group('Credential.getTokenResponse', () {
+    test(
+        'failing refresh with only one caller does not produce unhandled zone errors and preserves stack trace',
+        () async {
+      final errors = <Object>[];
+
+      await runZonedGuarded(() async {
+        final httpClient = _CountingClient((request) async {
+          throw const SocketException('network down');
+        });
+
+        final issuer = Issuer(OpenIdProviderMetadata.fromJson({
+          'issuer': 'https://issuer.example',
+          'token_endpoint': 'https://issuer.example/token',
+          'authorization_endpoint': 'https://issuer.example/auth',
+          'jwks_uri': 'https://issuer.example/jwks',
+          'response_types_supported': ['code'],
+          'token_endpoint_auth_methods_supported': ['client_secret_post'],
+        }));
+
+        final client = Client(issuer, 'client-id', httpClient: httpClient);
+        final credential = client.createCredential(
+          accessToken: 'expired',
+          refreshToken: 'refresh-token',
+          expiresAt: DateTime.fromMillisecondsSinceEpoch(0),
+        );
+
+        try {
+          await credential.getTokenResponse();
+          fail('Expected getTokenResponse to throw');
+        } catch (e, st) {
+          expect(e, isA<SocketException>());
+          expect(st.toString().trim(), isNotEmpty);
+        }
+
+        // Give the event loop a chance to surface any unhandled async errors.
+        await Future<void>.delayed(Duration.zero);
+      }, (error, stack) {
+        errors.add(error);
+      });
+
+      expect(errors, isEmpty);
+    });
+
+    test('concurrent calls share one in-flight refresh and only one HTTP call',
+        () async {
+      final httpClient = _CountingClient((request) async {
+        // Force some overlap between the two callers.
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        return _jsonResponse(request, 200, {
+          'access_token': 'new-access',
+          'token_type': 'bearer',
+          'expires_in': 3600,
+          'refresh_token': 'refresh-token',
+        });
+      });
+
+      final issuer = Issuer(OpenIdProviderMetadata.fromJson({
+        'issuer': 'https://issuer.example',
+        'token_endpoint': 'https://issuer.example/token',
+        'authorization_endpoint': 'https://issuer.example/auth',
+        'jwks_uri': 'https://issuer.example/jwks',
+        'response_types_supported': ['code'],
+        'token_endpoint_auth_methods_supported': ['client_secret_post'],
+      }));
+
+      final client = Client(issuer, 'client-id', httpClient: httpClient);
+      final credential = client.createCredential(
+        accessToken: 'expired',
+        refreshToken: 'refresh-token',
+        expiresAt: DateTime.fromMillisecondsSinceEpoch(0),
+      );
+
+      final f1 = credential.getTokenResponse();
+      final f2 = credential.getTokenResponse();
+
+      final results = await Future.wait([f1, f2]);
+
+      expect(results[0].accessToken, 'new-access');
+      expect(results[1].accessToken, 'new-access');
+      expect(httpClient.sendCount, 1);
+    });
   });
 }
