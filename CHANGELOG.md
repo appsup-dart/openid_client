@@ -1,3 +1,7 @@
+## 0.4.10+1
+
+ - **FIX**: dedupe token refresh future. ([69e638bc](https://github.com/appsup-dart/openid_client/commit/69e638bcdefc43f09b58c87ef5e55868d48b63e6))
+
 ## 0.4.10
 
  - **FIX**: use revoke uri instead of token uri (pr [#106](https://github.com/appsup-dart/openid_client/issues/106) of bakiller). ([5c40d924](https://github.com/appsup-dart/openid_client/commit/5c40d924af044048dc18533508c8efd170577bf8))
