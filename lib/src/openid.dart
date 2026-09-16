@@ -111,19 +111,30 @@ class Issuer {
 
   static Iterable<Uri> get knownIssuers => _discoveries.keys;
 
+  static final Map<Uri, Future<Issuer>> _pendingDiscoveries = {};
+
   /// Discovers the OpenId Provider's metadata based on its uri.
   static Future<Issuer> discover(Uri uri, {http.Client? httpClient}) async {
-    if (_discoveries[uri] != null) return _discoveries[uri]!;
+    var cached = _discoveries[uri];
+    if (cached != null) return cached;
 
-    var segments = uri.pathSegments.toList();
-    if (segments.isNotEmpty && segments.last.isEmpty) {
-      segments.removeLast();
-    }
-    segments.addAll(['.well-known', 'openid-configuration']);
-    uri = uri.replace(pathSegments: segments);
+    return _pendingDiscoveries.putIfAbsent(uri, () async {
+      try {
+        var segments = uri.pathSegments.toList();
+        if (segments.isNotEmpty && segments.last.isEmpty) {
+          segments.removeLast();
+        }
+        segments.addAll(['.well-known', 'openid-configuration']);
+        var wellKnown = uri.replace(pathSegments: segments);
 
-    var json = await http.get(uri, client: httpClient);
-    return _discoveries[uri] = Issuer(OpenIdProviderMetadata.fromJson(json));
+        var json = await http.get(wellKnown, client: httpClient);
+        var issuer = Issuer(OpenIdProviderMetadata.fromJson(json));
+        _discoveries[uri] = issuer;
+        return issuer;
+      } finally {
+        _pendingDiscoveries.remove(uri);
+      }
+    });
   }
 }
 

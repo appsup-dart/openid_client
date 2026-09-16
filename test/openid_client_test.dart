@@ -17,7 +17,8 @@ Future<dynamic> _readJson(String path) async =>
     json.decode(await _file(path).readAsString());
 
 class _CountingClient extends http.BaseClient {
-  final FutureOr<http.StreamedResponse> Function(http.BaseRequest request) _send;
+  final FutureOr<http.StreamedResponse> Function(http.BaseRequest request)
+      _send;
 
   int sendCount = 0;
 
@@ -60,6 +61,35 @@ void main() {
       var url = Uri.parse('https://login.microsoftonline.com/common/v2.0/');
       var issuer = await Issuer.discover(url);
       expect(issuer.metadata.issuer.host, url.host);
+    });
+
+    test('caches discovery under the issuer URI and coalesces in-flight calls',
+        () async {
+      final httpClient = _CountingClient((request) async {
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+        expect(request.url.path, '/.well-known/openid-configuration');
+        return _jsonResponse(request, 200, {
+          'issuer': 'https://issuer.example',
+          'authorization_endpoint': 'https://issuer.example/auth',
+          'token_endpoint': 'https://issuer.example/token',
+          'response_types_supported': ['code'],
+          'subject_types_supported': ['public'],
+          'id_token_signing_alg_values_supported': ['RS256'],
+        });
+      });
+
+      var uri = Uri.parse('https://issuer.example');
+      var results = await Future.wait([
+        Issuer.discover(uri, httpClient: httpClient),
+        Issuer.discover(uri, httpClient: httpClient),
+      ]);
+
+      expect(results[0].metadata.issuer, uri);
+      expect(results[1].metadata.issuer, uri);
+      expect(httpClient.sendCount, 1);
+
+      await Issuer.discover(uri, httpClient: httpClient);
+      expect(httpClient.sendCount, 1);
     });
   });
 
