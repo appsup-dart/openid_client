@@ -1,3 +1,7 @@
+## 0.4.10+2
+
+ - **FIX**: cache OpenID discovery under the issuer URI. ([76e1df4a](https://github.com/appsup-dart/openid_client/commit/76e1df4ad7666dc9574f1bbe1c58618adf3cf2cf))
+
 ## 0.4.10+1
 
  - **FIX**: dedupe token refresh future. ([69e638bc](https://github.com/appsup-dart/openid_client/commit/69e638bcdefc43f09b58c87ef5e55868d48b63e6))
